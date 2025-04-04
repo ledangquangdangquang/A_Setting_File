@@ -1,0 +1,3 @@
+Set-Alias lvim 'C:\Users\ledangquangdangquang\.local\bin\lvim.ps1'
+oh-my-posh init pwsh --config C:\Users\ledangquangdangquang\Oh-my-posh-config.json | Invoke-Expression
+

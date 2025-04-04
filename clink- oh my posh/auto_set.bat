@@ -1,0 +1,1 @@
+clink set ohmyposh.theme C:\Users\quang\Oh-my-posh-config..json

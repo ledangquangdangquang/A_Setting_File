@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CustomKeySet derivedfrom="Windows" modifieddefault="false">
+   <Context id="Global">
+      <Action id="caret-end-line">
+         <Stroke code="VK_END"/>
+         <Stroke alt="on" code="VK_4"/>
+         <Stroke code="VK_4" meta="on"/>
+      </Action>
+      <Action id="caret-next-word">
+         <Stroke code="VK_RIGHT" ctrl="on"/>
+         <Stroke alt="on" code="VK_W"/>
+         <Stroke code="VK_KP_RIGHT" ctrl="on"/>
+         <Stroke code="VK_W" meta="on"/>
+      </Action>
+      <Action id="caret-forward">
+         <Stroke code="VK_RIGHT"/>
+         <Stroke alt="on" code="VK_L"/>
+         <Stroke code="VK_KP_RIGHT"/>
+         <Stroke code="VK_L" meta="on"/>
+      </Action>
+      <Action id="caret-backward">
+         <Stroke code="VK_LEFT"/>
+         <Stroke alt="on" code="VK_H"/>
+         <Stroke code="VK_KP_LEFT"/>
+         <Stroke code="VK_H" meta="on"/>
+      </Action>
+      <Action id="caret-previous-word">
+         <Stroke code="VK_LEFT" ctrl="on"/>
+         <Stroke alt="on" code="VK_B"/>
+         <Stroke code="VK_KP_LEFT" ctrl="on"/>
+         <Stroke code="VK_B" meta="on"/>
+      </Action>
+      <Action id="run-all-tests">
+         <Stroke code="VK_F5"/>
+         <Stroke alt="on" code="VK_N" ctrl="on"/>
+         <Stroke code="VK_N" ctrl="on" meta="on"/>
+      </Action>
+      <Action id="caret-begin-line">
+         <Stroke code="VK_HOME"/>
+         <Stroke alt="on" code="VK_0"/>
+         <Stroke code="VK_0" meta="on"/>
+      </Action>
+   </Context>
+   <Context id="CommandWindow">
+      <Action id="caret-begin">
+         <Stroke alt="on" code="VK_G"/>
+         <Stroke code="VK_G" meta="on"/>
+      </Action>
+      <Action follows="None" id="caret-up">
+         <Stroke alt="on" code="VK_K"/>
+         <Stroke code="VK_K" meta="on"/>
+      </Action>
+      <Action id="caret-end">
+         <Stroke code="VK_G" shift="on"/>
+      </Action>
+      <Action id="caret-backward"/>
+      <Action follows="None" id="caret-down">
+         <Stroke alt="on" code="VK_J"/>
+         <Stroke code="VK_J" meta="on"/>
+      </Action>
+   </Context>
+   <Context id="Explorer">
+      <Action follows="None" id="caret-begin">
+         <Stroke code="VK_HOME"/>
+         <Stroke alt="on" code="VK_G"/>
+         <Stroke code="VK_G" meta="on"/>
+      </Action>
+      <Action follows="None" id="caret-end">
+         <Stroke code="VK_END"/>
+         <Stroke code="VK_G" shift="on"/>
+      </Action>
+   </Context>
+   <Context id="Project">
+      <Action follows="None" id="caret-begin">
+         <Stroke code="VK_HOME"/>
+         <Stroke alt="on" code="VK_G"/>
+         <Stroke code="VK_G" meta="on"/>
+      </Action>
+      <Action follows="None" id="caret-end">
+         <Stroke code="VK_END"/>
+         <Stroke code="VK_G" shift="on"/>
+      </Action>
+   </Context>
+   <Context id="MATLABEditor">
+      <Action id="caret-begin">
+         <Stroke alt="on" code="VK_G"/>
+         <Stroke code="VK_G" meta="on"/>
+      </Action>
+      <Action id="debug-continue">
+         <Stroke alt="on" code="VK_N" ctrl="on"/>
+         <Stroke code="VK_N" ctrl="on" meta="on"/>
+      </Action>
+      <Action id="caret-up">
+         <Stroke alt="on" code="VK_K"/>
+         <Stroke code="VK_K" meta="on"/>
+      </Action>
+      <Action id="caret-end">
+         <Stroke code="VK_G" shift="on"/>
+      </Action>
+      <Action id="caret-down">
+         <Stroke alt="on" code="VK_J"/>
+         <Stroke code="VK_J" meta="on"/>
+      </Action>
+   </Context>
+</CustomKeySet>
