@@ -1,6 +1,15 @@
--- FILE PATH: C:\Users\ledan\AppData\Local\nvim --
---
---
+-- COLORS SET
+colors = {
+  gray       = '#44475a',
+  lightgray  = '#5f6a8e',
+  orange     = '#ffb86c',
+  purple     = '#bd93f9',
+  red        = '#ff5555',
+  yellow     = '#f1fa8c',
+  green      = '#50fa7b',
+  white      = '#f8f8f2',
+  black      = '#282a36',
+}
 -- Khởi tạo Lazy
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
@@ -75,7 +84,7 @@ require("lazy").setup({
                 -- mode = "tabs", -- or "buffers"
                 separator_style = "slant", -- or "thick", "thin", { 'any', 'any' },
                 indicator_style = 'underline', -- or 'none', 'icon', 'line'
-                buffer_close_icon = '',
+                -- buffer_close_icon = '',
                 modified_icon = '●',
                 -- close_icon = '',
                 left_trunc_marker = '',
@@ -84,7 +93,8 @@ require("lazy").setup({
                 max_prefix_length = 13,
                 tab_size = 13,
                 -- ... các tùy chọn khác
-            }
+            },
+        
         }
         end
     },
@@ -95,7 +105,7 @@ require("lazy").setup({
         config = function()
             require("toggleterm").setup()
         end
-    }
+    },
 })
 
 
@@ -113,3 +123,11 @@ vim.cmd [[
   highlight CursorLine guibg=none ctermbg=none
   highlight CursorLineNr guibg=none ctermbg=none
 ]]
+
+
+-- Tắt màn khởi động 
+vim.opt.shortmess:append "I"
+-- Xóa dấu ~ bên lề trái 
+vim.opt.fillchars:append({ eob = " " })
+-- Bật số dòng tương đối cho nviopt.number = true          -- Bật số dòng tuyệt đối cho dòng hiện tại
+vim.opt.relativenumber = true  -- Bật số dòng tương đối cho các dòng khác
