@@ -1,0 +1,3 @@
+- komorebi.bar.json: ~/
+- komorebi.json: ~/
+- whkdrc: ~/.config
