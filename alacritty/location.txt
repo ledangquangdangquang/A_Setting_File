@@ -1,0 +1,1 @@
+it's in appdata/roaming/alacritty

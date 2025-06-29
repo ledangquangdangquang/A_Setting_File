@@ -1,0 +1,59 @@
+# Alacritty config file - mô phỏng giống WezTerm
+
+# 1. Cửa sổ và nền
+[window]
+opacity = 0.4
+decorations = "none"  # Ẩn viền cửa sổ
+padding = { x = 0, y = 0}
+dynamic_padding = false
+
+
+# 2. Font
+[font]
+normal = { family = "FiraCode Nerd Font Mono", style = "Medium" }
+size = 16 
+
+# 3. Con trỏ
+[cursor]
+style = { shape = "Underline", blinking = "Never" }
+
+# 4. Shell (Bash cài qua Scoop Git)
+[terminal.shell]
+program = "C:\\Users\\quang\\scoop\\apps\\git\\current\\bin\\bash.exe"
+args = ["-l"]
+
+[general] 
+working_directory = "C:\\Users\\quang"
+import = [
+"~/.config/alacritty/themes/themes/tokyo_night.toml"
+]
+
+
+# 5. Màu sắc - Theme: Carbonfox (dán trực tiếp)
+[colors.primary]
+background = "#0f0f0f"
+foreground = "#d3d3d3"
+
+[colors.normal]
+black   = "#1c1c1c"
+red     = "#af005f"
+green   = "#5faf00"
+yellow  = "#d7af5f"
+blue    = "#5fafd7"
+magenta = "#808080"
+cyan    = "#d7875f"
+white   = "#d0d0d0"
+
+[colors.bright]
+black   = "#585858"
+red     = "#5faf5f"
+green   = "#afd700"
+yellow  = "#af87d7"
+blue    = "#ffaf00"
+magenta = "#ff5faf"
+cyan    = "#00afaf"
+white   = "#5f8787"
+
+[scrolling]
+history = 10000    # hoặc 0 nếu muốn tắt cuộn hoàn toàn
+multiplier = 0     # vô hiệu hóa cuộn bằng chuột
