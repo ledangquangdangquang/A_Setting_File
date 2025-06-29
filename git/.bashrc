@@ -6,3 +6,4 @@ function y() {
 	fi
 	rm -f -- "$tmp"
 }
+eval "$(starship init bash)"
