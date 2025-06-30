@@ -2,7 +2,7 @@
 
 > This for matlab keyshort cut. 
 ---
-- Import shortcut in preference -> keyboardshortcut (matlab app)
+## Import shortcut in preference -> keyboardshortcut (matlab app)
 
 ---
 > [!NOTE]
