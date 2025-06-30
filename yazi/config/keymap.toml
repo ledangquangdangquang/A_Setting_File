@@ -1,0 +1,9 @@
+[mgr]
+
+prepend_keymap = [
+    {on   = "T"     ,run  = "plugin toggle-pane min-preview"    ,desc = "Show or hide the preview pane"},
+    {on   = "l"     ,run  = "plugin smart-enter"       ,desc = "Enter the child directory, or open the file"},
+	{ on = [ "g", "r" ],       run = "cd ~/AppData/Roaming",     desc = "Go ~/AppData/Roaming" },
+	{ on = [ "g", "l" ],       run = "cd ~/AppData/Local",     desc = "Go ~/AppData/Local" },
+	{ on = [ "g", "d" ],       run = "cd D:",     desc = "Go D:" },
+]

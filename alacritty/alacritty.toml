@@ -4,7 +4,7 @@
 [window]
 opacity = 0.4
 decorations = "none"  # Ẩn viền cửa sổ
-padding = { x = 0, y = 0}
+padding = { x = 5, y = 0}
 dynamic_padding = false
 
 
@@ -25,7 +25,7 @@ args = ["-l"]
 [general] 
 working_directory = "C:\\Users\\quang"
 import = [
-"~/.config/alacritty/themes/themes/tokyo_night.toml"
+    "./themes/tokyo_night.toml"
 ]
 
 
