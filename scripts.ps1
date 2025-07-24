@@ -5,203 +5,198 @@ function Write-Log {
     )
     switch ($Type) {
         "Info"    { Write-Host "INFO: $Message" -ForegroundColor Cyan }
-        "Success" { Write-Host "THÀNH CÔNG: $Message" -ForegroundColor Green }
-        "Warning" { Write-Host "CẢNH BÁO: $Message" -ForegroundColor Yellow }
-        "Error"   { Write-Host "LỖI: $Message" -ForegroundColor Red }
-        default   { Write-Host "$Type: $Message" }
+        "Success" { Write-Host "SUCCESS: $Message" -ForegroundColor Green }
+        "Warning" { Write-Host "WARNING: $Message" -ForegroundColor Yellow }
+        "Error"   { Write-Host "ERROR: $Message" -ForegroundColor Red }
+        default   { Write-Host "${Type}: $Message" }
     }
 }
 
-# --- Bắt đầu script ---
-Write-Log "Bắt đầu quá trình cài đặt môi trường phát triển tự động..." "Info"
+# --- Start Script ---
+Write-Log "Starting the automated development environment setup..." "Info"
 
-# --- 1. Cài đặt Scoop ---
-Write-Log "--- Bắt đầu cài đặt Scoop ---" "Info"
+# --- 1. Install Scoop ---
+Write-Log "--- Starting Scoop installation ---" "Info"
 if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
-    Write-Log "Scoop chưa được cài đặt. Đang tiến hành cài đặt..." "Info"
+    Write-Log "Scoop is not installed. Proceeding with installation..." "Info"
     try {
-        # Đặt ExecutionPolicy để cho phép chạy script từ xa (chỉ cho người dùng hiện tại)
         Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force | Out-Null
         Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')
-        Write-Log "Scoop đã cài đặt thành công!" "Success"
-        # Thêm bucket 'extras' để có thêm nhiều ứng dụng
+        Write-Log "Scoop installed successfully!" "Success"
         scoop bucket add extras
-        Write-Log "Đã thêm bucket 'extras' cho Scoop." "Success"
+        Write-Log "Added 'extras' bucket to Scoop." "Success"
     } catch {
-        Write-Log "Lỗi khi cài đặt Scoop: $($_.Exception.Message)" "Error"
-        Write-Log "Vui lòng kiểm tra kết nối mạng hoặc quyền hạn và chạy lại script." "Error"
-        exit 1 # Thoát nếu Scoop không cài được
+        Write-Log "Error installing Scoop: $($_.Exception.Message)" "Error"
+        Write-Log "Please check your network connection or permissions and rerun the script." "Error"
+        exit 1
     }
 } else {
-    Write-Log "Scoop đã được cài đặt. Đang cập nhật Scoop..." "Warning"
+    Write-Log "Scoop is already installed. Updating Scoop..." "Warning"
     scoop update
-    Write-Log "Đã cập nhật Scoop." "Success"
-    # Đảm bảo bucket 'extras' được thêm
+    Write-Log "Scoop updated." "Success"
     if (-not (scoop bucket list | Select-String -Pattern "extras" -Quiet)) {
         scoop bucket add extras
-        Write-Log "Đã thêm bucket 'extras' cho Scoop." "Success"
+        Write-Log "Added 'extras' bucket to Scoop." "Success"
     }
 }
-Write-Log "--- Kết thúc cài đặt Scoop ---`n" "Info"
+Write-Log "--- Scoop installation complete ---`n" "Info"
 
-# --- 2. Cài đặt Python và Tree ---
-Write-Log "--- Bắt đầu cài đặt Python và Tree ---" "Info"
+# --- 2. Install Python and Tree ---
+Write-Log "--- Starting Python and Tree installation ---" "Info"
 
-# Cài Python
 if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
-    Write-Log "Đang cài đặt Python..." "Info"
+    Write-Log "Installing Python..." "Info"
     scoop install python
-    Write-Log "Python đã cài đặt thành công!" "Success"
+    Write-Log "Python installed successfully!" "Success"
 } else {
-    Write-Log "Python đã được cài đặt." "Warning"
+    Write-Log "Python is already installed." "Warning"
 }
 
-# Cài Tree
 if (-not (Get-Command tree -ErrorAction SilentlyContinue)) {
-    Write-Log "Đang cài đặt Tree..." "Info"
+    Write-Log "Installing Tree..." "Info"
     scoop install tree
-    Write-Log "Tree đã cài đặt thành công!" "Success"
+    Write-Log "Tree installed successfully!" "Success"
 } else {
-    Write-Log "Tree đã được cài đặt." "Warning"
+    Write-Log "Tree is already installed." "Warning"
 }
-Write-Log "--- Kết thúc cài đặt Python và Tree ---`n" "Info"
+Write-Log "--- Python and Tree installation complete ---`n" "Info"
 
-# --- 3. Cài đặt Git ---
-Write-Log "--- Bắt đầu cài đặt Git ---" "Info"
+# --- 3. Install Git ---
+Write-Log "--- Starting Git installation ---" "Info"
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
-    Write-Log "Đang cài đặt Git..." "Info"
+    Write-Log "Installing Git..." "Info"
     scoop install git
-    Write-Log "Git đã cài đặt thành công!" "Success"
+    Write-Log "Git installed successfully!" "Success"
 } else {
-    Write-Log "Git đã được cài đặt." "Warning"
+    Write-Log "Git is already installed." "Warning"
 }
-Write-Log "--- Kết thúc cài đặt Git ---`n" "Info"
+Write-Log "--- Git installation complete ---`n" "Info"
 
-# --- 4. Thiết lập Git ---
-Write-Log "--- Bắt đầu thiết lập Git ---" "Info"
+# --- 4. Configure Git ---
+Write-Log "--- Starting Git configuration ---" "Info"
 
-$gitUserName = Read-Host "Nhập tên người dùng Git của bạn (ví dụ: Your Name)"
-$gitUserEmail = Read-Host "Nhập email Git của bạn (ví dụ: your.email@example.com)"
+$gitUserName = Read-Host "Enter your Git username (e.g., Your Name)"
+$gitUserEmail = Read-Host "Enter your Git email (e.g., your.email@example.com)"
 
 git config --global user.name "$gitUserName"
 git config --global user.email "$gitUserEmail"
 
-Write-Log "Git user.name và user.email đã được thiết lập." "Success"
-Write-Log "--- Kết thúc thiết lập Git ---`n" "Info"
-Write-Log "--- Clone A_setting_file ---`n" "Info"
+Write-Log "Git user.name and user.email configured." "Success"
+Write-Log "--- Git configuration complete ---`n" "Info"
+
+# --- 5. Clone A_Setting_File Repository ---
+Write-Log "--- Cloning A_Setting_File repository ---`n" "Info"
 git clone https://github.com/ledangquangdangquang/A_Setting_File.git
-$gitRepo = "A_Setting_File" 
-Write-Log "--- End Clone A_setting_file ---`n" "Info"
+$gitRepo = "A_Setting_File"
+Write-Log "--- Clone complete ---`n" "Info"
 
-# --- 5. Thiết lập .bashrc (cho Git Bash/WSL) ---
-# Phần này chỉ áp dụng nếu bạn sử dụng Git Bash hoặc Windows Subsystem for Linux (WSL).
-# Nếu bạn chỉ dùng PowerShell, phần này có thể bỏ qua.
-Write-Log "--- Bắt đầu thiết lập .bashrc (cho Git Bash/WSL) ---" "Info"
+# --- 6. Setup .bashrc (for Git Bash/WSL) ---
+Write-Log "--- Setting up .bashrc (for Git Bash/WSL) ---" "Info"
 Copy-Item -Path "./$gitRepo/git-bash/.bashrc" -Destination "$env:USERPROFILE" -Force
-Write-Log "--- Kết thúc thiết lập .bashrc ---`n" "Info"
+Write-Log "--- .bashrc setup complete ---`n" "Info"
 
-# --- 6. Cài đặt Starship ---
-Write-Log "--- Bắt đầu cài đặt Starship ---" "Info"
+# --- 7. Install Starship ---
+Write-Log "--- Installing Starship ---" "Info"
 if (-not (Get-Command starship -ErrorAction SilentlyContinue)) {
-    Write-Log "Đang cài đặt Starship..." "Info"
+    Write-Log "Installing Starship..." "Info"
     scoop install starship
-    Write-Log "Starship đã cài đặt thành công!" "Success"
+    Write-Log "Starship installed successfully!" "Success"
 } else {
-    Write-Log "Starship đã được cài đặt." "Warning"
+    Write-Log "Starship is already installed." "Warning"
 }
-Write-Log "--- Kết thúc cài đặt Starship ---`n" "Info"
+Write-Log "--- Starship installation complete ---`n" "Info"
 
-# --- 7. Thiết lập Starship ---
-Write-Log "--- Bắt đầu thiết lập Starship ---" "Info"
+# --- 8. Configure Starship ---
+Write-Log "--- Configuring Starship ---" "Info"
 Copy-Item -Path "./$gitRepo/starship/starship.toml" -Destination "$env:USERPROFILE/.config" -Force
-Write-Log "--- Kết thúc thiết lập Starship ---`n" "Info"
+Write-Log "--- Starship configuration complete ---`n" "Info"
 
-# --- 8. Cài đặt Neovim (Nvim) ---
-Write-Log "--- Bắt đầu cài đặt Neovim ---" "Info"
+# --- 9. Install Neovim ---
+Write-Log "--- Installing Neovim ---" "Info"
 if (-not (Get-Command nvim -ErrorAction SilentlyContinue)) {
-    Write-Log "Đang cài đặt Neovim..." "Info"
+    Write-Log "Installing Neovim..." "Info"
     scoop install neovim
-    Write-Log "Neovim đã cài đặt thành công!" "Success"
+    Write-Log "Neovim installed successfully!" "Success"
 } else {
-    Write-Log "Neovim đã được cài đặt." "Warning"
+    Write-Log "Neovim is already installed." "Warning"
 }
-Write-Log "--- Kết thúc cài đặt Neovim ---`n" "Info"
+Write-Log "--- Neovim installation complete ---`n" "Info"
 
-# --- 9. Thiết lập Neovim ---
-Write-Log "--- Bắt đầu thiết lập Neovim ---" "Info"
-$nvimConfigDir = "$env:LOCALAPPDATA\nvim" # Thư mục cấu hình Neovim trên Windows
+# --- 10. Configure Neovim ---
+Write-Log "--- Configuring Neovim ---" "Info"
+$nvimConfigDir = "$env:LOCALAPPDATA\nvim"
 Copy-Item -Path "./$gitRepo/nvim" -Destination "$nvimConfigDir" -Recurse -Force
-Write-Log "--- Kết thúc thiết lập Neovim ---`n" "Info"
+Write-Log "--- Neovim configuration complete ---`n" "Info"
 
-# --- 10. Cài đặt Alacritty ---
-Write-Log "--- Bắt đầu cài đặt Alacritty ---" "Info"
+# --- 11. Install Alacritty ---
+Write-Log "--- Installing Alacritty ---" "Info"
 if (-not (Get-Command alacritty -ErrorAction SilentlyContinue)) {
-    Write-Log "Đang cài đặt Alacritty..." "Info"
+    Write-Log "Installing Alacritty..." "Info"
     scoop install alacritty
-    Write-Log "Alacritty đã cài đặt thành công!" "Success"
+    Write-Log "Alacritty installed successfully!" "Success"
 } else {
-    Write-Log "Alacritty đã được cài đặt." "Warning"
+    Write-Log "Alacritty is already installed." "Warning"
 }
-Write-Log "--- Kết thúc cài đặt Alacritty ---`n" "Info"
+Write-Log "--- Alacritty installation complete ---`n" "Info"
 
-# --- 11. Thiết lập Alacritty ---
-Write-Log "--- Bắt đầu thiết lập Alacritty ---" "Info"
+# --- 12. Configure Alacritty ---
+Write-Log "--- Configuring Alacritty ---" "Info"
 Copy-Item -Path "./$gitRepo/alacritty" -Destination "$env:APPDATA" -Recurse -Force
-Write-Log "--- Kết thúc thiết lập Alacritty ---`n" "Info"
+Write-Log "--- Alacritty configuration complete ---`n" "Info"
 
-# --- 12. Cài đặt Yazi ---
-Write-Log "--- Bắt đầu cài đặt Yazi ---" "Info"
+# --- 13. Install Yazi ---
+Write-Log "--- Installing Yazi ---" "Info"
 if (-not (Get-Command yazi -ErrorAction SilentlyContinue)) {
-    Write-Log "Đang cài đặt Yazi..." "Info"
+    Write-Log "Installing Yazi..." "Info"
     scoop install yazi
-    Write-Log "Yazi đã cài đặt thành công!" "Success"
+    Write-Log "Yazi installed successfully!" "Success"
 } else {
-    Write-Log "Yazi đã được cài đặt." "Warning"
+    Write-Log "Yazi is already installed." "Warning"
 }
-Write-Log "--- Kết thúc cài đặt Yazi ---`n" "Info"
+Write-Log "--- Yazi installation complete ---`n" "Info"
 
-# --- 13. Thiết lập Yazi ---
-Write-Log "--- Bắt đầu thiết lập Yazi ---" "Info"
+# --- 14. Configure Yazi ---
+Write-Log "--- Configuring Yazi ---" "Info"
 Copy-Item -Path "./$gitRepo/yazi" -Destination "$env:APPDATA" -Recurse -Force
-Write-Log "--- Kết thúc thiết lập Yazi ---`n" "Info"
+Write-Log "--- Yazi configuration complete ---`n" "Info"
 
-# --- 14. Cài đặt Komorebic ---
-Write-Log "--- Bắt đầu cài đặt Komorebic ---" "Info"
+# --- 15. Install Komorebic ---
+Write-Log "--- Installing Komorebic ---" "Info"
 if (-not (Get-Command komorebic -ErrorAction SilentlyContinue)) {
-    Write-Log "Đang cài đặt Komorebic..." "Info"
-    # Komorebi thường được cài đặt từ release hoặc Cargo.
-    # Giả sử scoop install komorebi hoạt động với extras bucket.
+    Write-Log "Installing Komorebic..." "Info"
     scoop install komorebi whkd
-    Write-Log "Komorebic đã cài đặt thành công!" "Success"
+    Write-Log "Komorebic installed successfully!" "Success"
 } else {
-    Write-Log "Komorebic đã được cài đặt." "Warning"
+    Write-Log "Komorebic is already installed." "Warning"
 }
-Write-Log "--- Kết thúc cài đặt Komorebic ---`n" "Info"
+Write-Log "--- Komorebic installation complete ---`n" "Info"
 
-# --- 15. Thiết lập Komorebic ---
-Write-Log "--- Bắt đầu thiết lập Komorebic ---" "Info"
+# --- 16. Configure Komorebic ---
+Write-Log "--- Configuring Komorebic ---" "Info"
 Copy-Item -Path "./$gitRepo/komorebic/komorebi.bar.json" -Destination "$env:USERPROFILE" -Force
 Copy-Item -Path "./$gitRepo/komorebic/komorebi.json" -Destination "$env:USERPROFILE" -Force
 Copy-Item -Path "./$gitRepo/komorebic/whkdrc" -Destination "$env:USERPROFILE/.config" -Force
 Copy-Item -Path "./$gitRepo/komorebic/startup-komo.bat" -Destination "$env:ProgramData\Microsoft\Windows\Start Menu\Programs\Startup" -Force
-Write-Log "--- Kết thúc thiết lập Komorebic ---`n" "Info"
+Write-Log "--- Komorebic configuration complete ---`n" "Info"
 
-# --- 16. Cài đặt Firefox ---
-Write-Log "--- Bắt đầu cài đặt Firefox ---" "Info"
+# --- 17. Install Firefox ---
+Write-Log "--- Installing Firefox ---" "Info"
 if (-not (Get-Command firefox -ErrorAction SilentlyContinue)) {
-    Write-Log "Đang cài đặt Firefox..." "Info"
+    Write-Log "Installing Firefox..." "Info"
     scoop install firefox
-    Write-Log "Firefox đã cài đặt thành công!" "Success"
+    Write-Log "Firefox installed successfully!" "Success"
 } else {
-    Write-Log "Firefox đã được cài đặt." "Warning"
+    Write-Log "Firefox is already installed." "Warning"
 }
-Write-Log "--- Kết thúc cài đặt Firefox ---`n" "Info"
+Write-Log "--- Firefox installation complete ---`n" "Info"
 
-# --- 17. Thiết lập Firefox ---
-Write-Log "--- Bắt đầu thiết lập Firefox ---" "Info"
-Write-Log "Việc tự động thiết lập Firefox (add-on, user.js, etc.) là phức tạp và thường yêu cầu tương tác thủ công hoặc sao chép profile." "Warning"
-Write-Log "Bạn có thể cần sao chép một profile Firefox hiện có hoặc cài đặt các tiện ích mở rộng thủ công sau khi cài đặt." "Info"
-Write-Log "--- Kết thúc thiết lập Firefox ---`n" "Info"
+# --- 18. Configure Firefox ---
+Write-Log "--- Starting Firefox configuration ---" "Info"
+Write-Log "Automatically configuring Firefox (e.g., extensions, user.js, etc.) is complex and often requires manual interaction or copying an existing profile." "Warning"
+Write-Log "You may need to copy an existing Firefox profile or manually install required extensions after installation." "Info"
+Write-Log "--- Firefox configuration complete ---`n" "Info"
 
-Write-Log "Tất cả các bước cài đặt và cấu hình đã hoàn tất!" "Success"
-Write-Log "Vui lòng khởi động lại terminal hoặc máy tính để các thay đổi có hiệu lực hoàn toàn." "Info"
+# --- Final Message ---
+Write-Log "All setup and configuration steps have been completed!" "Success"
+Write-Log "Please restart your terminal or computer for all changes to take full effect." "Info"
+
