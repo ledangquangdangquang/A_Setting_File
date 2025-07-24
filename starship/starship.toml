@@ -1,0 +1,24 @@
+#export STARSHIP_CONFIG=~/.config/starship.toml
+# Bật/tắt dòng mới trước prompt.
+add_newline = true
+
+# Cấu hình module hostname.
+[hostname]
+ssh_only = false
+format = "[$ssh_symbol$hostname]($style) "
+style = "bold purple"
+
+# Cấu hình module character (ký tự prompt cuối cùng).
+[character]
+success_symbol = "[ -_- ](bold green)"
+error_symbol = "[ @_@ ](bold red)"
+
+# Cấu hình module username.
+[username]
+show_always = true
+format = "[$user]($style)@"
+
+# Cấu hình module directory.
+[directory]
+read_only = " 🔒"
+truncation_symbol = "…/"

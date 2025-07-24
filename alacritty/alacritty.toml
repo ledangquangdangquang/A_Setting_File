@@ -56,4 +56,3 @@ white   = "#5f8787"
 
 [scrolling]
 history = 10000    # hoặc 0 nếu muốn tắt cuộn hoàn toàn
-multiplier = 0     # vô hiệu hóa cuộn bằng chuột
