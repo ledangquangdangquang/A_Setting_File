@@ -1,13 +1,13 @@
-# Alacritty terminal 
+# Starship 
 
-> This terminal i am using now. 
+> I am using it now. 
 ---
 ## Locate: 
 * The file `starship.toml` in `%USERPROFILE%/.config`
-* Set config 
-```
-export STARSHIP_CONFIG=~/.config/starship.toml
-```
+* Set config:
+    ```
+    export STARSHIP_CONFIG=~/.config/starship.toml
+    ```
 
 ---
 > [!NOTE]
