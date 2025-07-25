@@ -32,3 +32,9 @@
 > `%LOCALAPPDATA%` is `C:\Users\{UserName}\AppData\local` 
 > 
 > `Window + R` and enter `%LOCALAPPDATA%` to see exactly location.
+
+---
+Run `ps1` file 
+```
+Set-ExecutionPolicy RemoteSigned
+```
