@@ -41,6 +41,29 @@ if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
 }
 Write-Log "--- Scoop installation complete ---`n" "Info"
 
+# --- 3. Install Git ---
+Write-Log "--- Starting Git installation ---" "Info"
+if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+    Write-Log "Installing Git..." "Info"
+    scoop install git
+    Write-Log "Git installed successfully!" "Success"
+} else {
+    Write-Log "Git is already installed." "Warning"
+}
+Write-Log "--- Git installation complete ---`n" "Info"
+
+# --- 4. Configure Git ---
+Write-Log "--- Starting Git configuration ---" "Info"
+
+$gitUserName = Read-Host "Enter your Git username (e.g., Your Name)"
+$gitUserEmail = Read-Host "Enter your Git email (e.g., your.email@example.com)"
+
+git config --global alias.acp '!f() { git add . && git commit -m "$1" && git push origin main; }; f'
+git config --global user.name "$gitUserName"
+git config --global user.email "$gitUserEmail"
+
+Write-Log "Git user.name and user.email configured." "Success"
+Write-Log "--- Git configuration complete ---`n" "Info"
 # --- 2. Install Python and Tree ---
 Write-Log "--- Starting Python and Tree installation ---" "Info"
 
@@ -61,28 +84,6 @@ if (-not (Get-Command tree -ErrorAction SilentlyContinue)) {
 }
 Write-Log "--- Python and Tree installation complete ---`n" "Info"
 
-# --- 3. Install Git ---
-Write-Log "--- Starting Git installation ---" "Info"
-if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
-    Write-Log "Installing Git..." "Info"
-    scoop install git
-    Write-Log "Git installed successfully!" "Success"
-} else {
-    Write-Log "Git is already installed." "Warning"
-}
-Write-Log "--- Git installation complete ---`n" "Info"
-
-# --- 4. Configure Git ---
-Write-Log "--- Starting Git configuration ---" "Info"
-
-$gitUserName = Read-Host "Enter your Git username (e.g., Your Name)"
-$gitUserEmail = Read-Host "Enter your Git email (e.g., your.email@example.com)"
-
-git config --global user.name "$gitUserName"
-git config --global user.email "$gitUserEmail"
-
-Write-Log "Git user.name and user.email configured." "Success"
-Write-Log "--- Git configuration complete ---`n" "Info"
 
 # --- 5. Clone A_Setting_File Repository ---
 Write-Log "--- Cloning A_Setting_File repository ---`n" "Info"
