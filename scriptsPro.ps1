@@ -5,20 +5,20 @@
 .DESCRIPTION
     This script performs the following actions:
     1. Checks for and installs/updates Scoop package manager.
-    2. Batch-installs a list of essential development tools like Git, Python, Neovim, etc., for improved performance.
-    3. Configures Git with user-provided credentials.
-    4. Clones a settings repository.
-    5. Deploys configuration files for all installed tools (.bashrc, starship, nvim, alacritty, etc.).
-    6. Provides clear logging for each step.
+    2. Installs Git as a core dependency immediately after Scoop setup.
+    3. Batch-installs the remaining essential development tools for improved performance.
+    4. Configures Git with user-provided credentials.
+    5. Clones a settings repository.
+    6. Deploys configuration files for all installed tools.
+    7. Provides clear logging for each step.
 
 .NOTES
     Author: Gemini (based on user's script)
-    Version: 2.0
+    Version: 2.1
     Improvements:
-    - Massively improved performance by batch-installing packages with a single Scoop command.
-    - Refactored code for readability and maintainability using arrays and loops.
-    - Centralized package list for easy addition or removal of tools.
-    - Clearer variable definitions for file paths.
+    - Prioritized Git installation to resolve dependencies for subsequent steps.
+    - Maintained batch installation for all other non-essential packages.
+    - Restructured sections for better logical flow.
 #>
 
 # --- Helper Function for Logging ---
@@ -38,9 +38,9 @@ function Write-Log {
 }
 
 # --- Start Script ---
-Write-Log "Starting the automated development environment setup (v2 - Optimized)..." "Info"
+Write-Log "Starting the automated development environment setup (v2.1 - Git Priority)..." "Info"
 
-# --- 1. Install or Update Scoop ---
+# --- Section 1: Scoop Package Manager ---
 Write-Log "--- Section 1: Scoop Package Manager ---" "Info"
 if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
     Write-Log "Scoop not found. Proceeding with installation..." "Info"
@@ -67,13 +67,30 @@ if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
 Write-Log "--- Scoop setup complete ---`n" "Info"
 
 
-# --- 2. Batch Install Applications ---
-# This is the main performance improvement. We check all apps first, then run ONE command.
-Write-Log "--- Section 2: Application Installation ---" "Info"
+# --- Section 2: Install Git (Core Dependency) ---
+# Git is installed first because it's required to clone the settings repository later.
+Write-Log "--- Section 2: Installing Git ---" "Info"
+if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+    Write-Log "Git not found. Installing now..." "Info"
+    try {
+        scoop install git
+        Write-Log "Git installed successfully!" "Success"
+    } catch {
+        Write-Log "Error installing Git: $($_.Exception.Message)" "Error"
+        exit 1
+    }
+} else {
+    Write-Log "Git is already installed." "Warning"
+}
+Write-Log "--- Git installation complete ---`n" "Info"
 
-# Centralized list of all required packages. Easy to add/remove tools here.
+
+# --- Section 3: Batch Install Remaining Applications ---
+Write-Log "--- Section 3: Application Installation ---" "Info"
+
+# Centralized list of all remaining packages. Git has been removed from this list.
 $packages = @(
-    "git", "python", "tree", "starship", "neovim", "alacritty",
+    "python", "tree", "starship", "neovim", "alacritty",
     "yazi", "komorebi", "whkd", "firefox"
 )
 
@@ -86,19 +103,19 @@ if ($packagesToInstall.Count -gt 0) {
     try {
         # Install all missing packages in a single command for maximum efficiency.
         scoop install $packageList
-        Write-Log "All required applications installed successfully!" "Success"
+        Write-Log "All remaining applications installed successfully!" "Success"
     } catch {
         Write-Log "Error during batch installation: $($_.Exception.Message)" "Error"
         exit 1
     }
 } else {
-    Write-Log "All required applications are already installed." "Warning"
+    Write-Log "All remaining applications are already installed." "Warning"
 }
 Write-Log "--- Application installation complete ---`n" "Info"
 
 
-# --- 3. Configure Git ---
-Write-Log "--- Section 3: Git Configuration ---" "Info"
+# --- Section 4: Configure Git ---
+Write-Log "--- Section 4: Git Configuration ---" "Info"
 $gitUserName = Read-Host "Enter your Git username (e.g., Your Name)"
 $gitUserEmail = Read-Host "Enter your Git email (e.g., your.email@example.com)"
 
@@ -110,8 +127,8 @@ Write-Log "Git user.name, user.email, and 'acp' alias configured." "Success"
 Write-Log "--- Git configuration complete ---`n" "Info"
 
 
-# --- 4. Clone Settings Repository & Configure Applications ---
-Write-Log "--- Section 4: Deploying Configurations ---" "Info"
+# --- Section 5: Clone Settings Repository & Configure Applications ---
+Write-Log "--- Section 5: Deploying Configurations ---" "Info"
 $repoUrl = "https://github.com/ledangquangdangquang/A_Setting_File.git"
 $repoName = "A_Setting_File"
 $repoPath = "./$repoName"
@@ -167,8 +184,8 @@ Deploy-Config -Source "$repoPath\komorebic\startup-komo.bat" -Destination $start
 
 Write-Log "--- Configuration deployment complete ---`n" "Info"
 
-# --- 5. Firefox Configuration Note ---
-Write-Log "--- Section 5: Firefox Note ---" "Info"
+# --- Section 6: Firefox Configuration Note ---
+Write-Log "--- Section 6: Firefox Note ---" "Info"
 Write-Log "Automatic Firefox configuration (like extensions) is complex." "Warning"
 Write-Log "Please configure Firefox manually or by copying an existing profile if needed." "Info"
 Write-Log "--- Firefox note complete ---`n" "Info"
