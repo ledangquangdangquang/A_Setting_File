@@ -7,15 +7,16 @@
     1. Installs Scoop package manager.
     2. Installs Git as a core dependency for Scoop's bucket management.
     3. Configures Scoop buckets (like 'extras').
-    4. Batch-installs the remaining essential development tools.
+    4. Batch-installs the remaining essential development tools, including vcredist2022.
     5. Configures Git, clones a settings repository, and deploys configuration files.
 
 .NOTES
     Author: Gemini (based on user's script)
-    Version: 2.3
+    Version: 2.4
     Improvements:
-    - Critical Fix: Ensured Git is installed BEFORE any 'scoop bucket' operations to prevent errors.
-    - Restructured the script for a more robust and logical installation flow.
+    - Added 'vcredist2022' to the installation list.
+    - Added visual separators (--------------------) between sections for better readability.
+    - Ensured Git is installed BEFORE any 'scoop bucket' operations.
 #>
 
 # --- Helper Function for Logging ---
@@ -35,7 +36,7 @@ function Write-Log {
 }
 
 # --- Start Script ---
-Write-Log "Starting the automated development environment setup (v2.3 - Bucket Dependency Fix)..." "Info"
+Write-Log "Starting the automated development environment setup (v2.4 - Added vcredist & separators)..." "Info"
 
 # --- Section 1: Install Scoop Package Manager ---
 Write-Log "--- Section 1: Installing Scoop ---" "Info"
@@ -54,6 +55,7 @@ if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
     Write-Log "Scoop is already installed." "Warning"
 }
 Write-Log "--- Scoop installation complete ---`n" "Info"
+Write-Host '------------------------------------------------------------'
 
 
 # --- Section 2: Install Git (Core Dependency for Scoop) ---
@@ -72,6 +74,7 @@ if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
     Write-Log "Git is already installed." "Warning"
 }
 Write-Log "--- Git installation complete ---`n" "Info"
+Write-Host '------------------------------------------------------------'
 
 
 # --- Section 3: Configure Scoop Buckets & Update ---
@@ -86,6 +89,7 @@ if (-not (scoop bucket list | Select-String -Pattern "extras" -Quiet)) {
     Write-Log "'extras' bucket already exists." "Warning"
 }
 Write-Log "--- Scoop configuration complete ---`n" "Info"
+Write-Host '------------------------------------------------------------'
 
 
 # --- Section 4: Batch Install Remaining Applications ---
@@ -94,7 +98,7 @@ Write-Log "--- Section 4: Application Installation ---" "Info"
 # Centralized list of all remaining packages.
 $packages = @(
     "python", "tree", "starship", "neovim", "alacritty",
-    "yazi", "komorebi", "whkd", "firefox"
+    "yazi", "komorebi", "whkd", "firefox", "vcredist2022"
 )
 
 # Filter out packages that are already installed.
@@ -114,6 +118,7 @@ if ($packagesToInstall.Count -gt 0) {
     Write-Log "All remaining applications are already installed." "Warning"
 }
 Write-Log "--- Application installation complete ---`n" "Info"
+Write-Host '------------------------------------------------------------'
 
 
 # --- Section 5: Configure Git ---
@@ -127,6 +132,7 @@ git config --global alias.acp '!f() { git add . && git commit -m "$1" && git pus
 
 Write-Log "Git user.name, user.email, and 'acp' alias configured." "Success"
 Write-Log "--- Git configuration complete ---`n" "Info"
+Write-Host '------------------------------------------------------------'
 
 
 # --- Section 6: Clone Settings Repository & Deploy Configurations ---
@@ -185,12 +191,16 @@ Deploy-Config -Source "$repoPath\komorebic\whkdrc" -Destination $configDir
 Deploy-Config -Source "$repoPath\komorebic\startup-komo.bat" -Destination $startupDir
 
 Write-Log "--- Configuration deployment complete ---`n" "Info"
+Write-Host '------------------------------------------------------------'
+
 
 # --- Section 7: Firefox Configuration Note ---
 Write-Log "--- Section 7: Firefox Note ---" "Info"
 Write-Log "Automatic Firefox configuration (like extensions) is complex." "Warning"
 Write-Log "Please configure Firefox manually or by copying an existing profile if needed." "Info"
 Write-Log "--- Firefox note complete ---`n" "Info"
+Write-Host '------------------------------------------------------------'
+
 
 # --- Final Message ---
 Write-Log "All setup and configuration steps have been completed successfully!" "Success"
