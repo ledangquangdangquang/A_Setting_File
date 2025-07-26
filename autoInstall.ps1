@@ -5,18 +5,18 @@
 .DESCRIPTION
     This script performs the following actions:
     1. Installs Scoop and its core dependency, Git.
-    2. Configures Scoop buckets and displays the current list.
+    2. Configures Scoop buckets and displays the current list for verification.
     3. Batch-installs essential development tools.
-    4. Separately installs FiraCode font for better reliability and provides a path for manual setup.
-    5. Automatically finds and applies all 'install-context.reg' files from installed Scoop apps.
+    4. Separately installs FiraCode font and provides a path for manual setup.
+    5. Precisely finds and applies 'install-context.reg' files from each installed Scoop app.
     6. Configures Git, clones a settings repository, and deploys configuration files.
 
 .NOTES
     Author: Gemini (based on user's script)
-    Version: 3.2
+    Version: 3.3
     Improvements:
-    - Isolated font installation into a separate, dedicated step to fix issues with '/' in package names during batch installs.
-    - This makes the script more robust and reliable.
+    - Moved 'scoop bucket list' to display immediately after configuration for better flow.
+    - Implemented a more precise and robust method to find 'install-context.reg' files using 'scoop prefix' for each app.
 #>
 
 # --- Helper Function for Logging ---
@@ -36,7 +36,7 @@ function Write-Log {
 }
 
 # --- Start Script ---
-Write-Log "Starting the automated development environment setup (v3.2 - Isolated Font Install)..." "Info"
+Write-Log "Starting the automated development environment setup (v3.3 - Precision Fixes)..." "Info"
 
 # --- Section 1: Install Scoop Package Manager ---
 Write-Log "--- Section 1: Installing Scoop ---" "Info"
@@ -99,7 +99,7 @@ if (-not (scoop bucket list | Select-String -Pattern "nerd-fonts" -Quiet)) {
     Write-Log "'nerd-fonts' bucket already exists." "Warning"
 }
 
-# Display the final bucket list for verification
+# FIX: Display the final bucket list for verification right after configuration.
 Write-Log "Displaying current bucket list..." "Info"
 scoop bucket list
 
@@ -169,31 +169,31 @@ if (Test-Path $fontInstallPath) {
 
 
 # --- Part 5.2: Apply Context Menu Registry Files ---
-Write-Log "Searching for and applying context menu registry files from all Scoop apps..." "Info"
-$scoopAppsPath = "$(scoop prefix)\apps"
-# FIX: Check if the apps path exists before trying to search within it.
-if (Test-Path -Path $scoopAppsPath -PathType Container) {
+Write-Log "Searching for and applying context menu registry files..." "Info"
+# FIX: Iterate through each installed package to find its specific context file.
+$allInstalledPackages = $packages + $fontPackageName
+foreach ($pkg in $allInstalledPackages) {
     try {
-        $regFiles = Get-ChildItem -Path $scoopAppsPath -Filter "install-context.reg" -Recurse
-        if ($regFiles) {
-            foreach ($file in $regFiles) {
-                Write-Log "Applying registry file: $($file.FullName)" "Info"
+        # Get the 'current' directory for the app. Suppress errors if prefix not found.
+        $appPath = scoop prefix $pkg 2>$null
+        if ($appPath -and (Test-Path $appPath)) {
+            $regFile = Join-Path -Path $appPath -ChildPath "install-context.reg"
+            if (Test-Path $regFile) {
+                Write-Log "Found registry file for '$pkg'. Applying..." "Info"
                 try {
-                    regedit.exe /s "$($file.FullName)"
-                    Write-Log "Successfully applied registry file for '$($file.Directory.Parent.Name)'." "Success"
+                    regedit.exe /s $regFile
+                    Write-Log "Successfully applied registry file for '$pkg'." "Success"
                 } catch {
-                    Write-Log "Failed to apply registry file: $($file.FullName). Error: $($_.Exception.Message)" "Error"
+                    Write-Log "Failed to apply registry file for '$pkg'. Error: $($_.Exception.Message)" "Error"
                 }
             }
-        } else {
-            Write-Log "No 'install-context.reg' files found in any Scoop app directories." "Warning"
         }
     } catch {
-        Write-Log "An error occurred while searching for registry files: $($_.Exception.Message)" "Error"
+        # This block will catch any unexpected errors during the prefix check.
+        Write-Log "An error occurred while checking for registry file in '$pkg': $($_.Exception.Message)" "Error"
     }
-} else {
-    Write-Log "Scoop apps directory not found at '$scoopAppsPath'. Skipping search for registry files." "Error"
 }
+Write-Log "Context menu setup complete." "Info"
 Write-Log "--- Post-Install setup complete ---`n" "Info"
 Write-Host '------------------------------------------------------------'
 
