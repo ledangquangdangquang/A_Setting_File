@@ -47,7 +47,7 @@ $ascii = @'
                            |___/    |_|                  |___/                   |___/    |_|                  |___/
 '@
 
-Write-Host $ascii -ForegroundColor Cyan
+Write-Host $ascii -ForegroundColor Magenta
 Write-Log "Starting the automated development environment setup (v4.0 - Robust Unikey Install)..." "Info"
 
 # --- Section 1: Install Scoop Package Manager ---
