@@ -5,19 +5,18 @@
 .DESCRIPTION
     This script performs the following actions:
     1. Installs Scoop and its core dependency, Git.
-    2. Configures Scoop buckets, including 'nerd-fonts' for custom fonts.
-    3. Batch-installs essential development tools, including FiraCode Nerd Font.
-    4. Automatically installs the downloaded fonts into the Windows system.
-    5. Configures Git, clones a settings repository, and deploys configuration files.
-    6. Automatically imports any 'install-context.reg' files found in the settings repository.
+    2. Configures Scoop buckets, including 'nerd-fonts'.
+    3. Batch-installs essential development tools and fonts.
+    4. Automatically installs downloaded fonts into the Windows system.
+    5. Automatically finds and applies all 'install-context.reg' files from installed Scoop apps.
+    6. Configures Git, clones a settings repository, and deploys configuration files.
 
 .NOTES
     Author: Gemini (based on user's script)
-    Version: 2.7
+    Version: 3.0
     Improvements:
-    - Critical Fix: Added a post-installation step to automatically register downloaded fonts with the Windows system, making them immediately available.
-    - Added automatic installation of FiraCode Nerd Font.
-    - Added logic to automatically find and run 'install-context.reg' files.
+    - Re-implemented robust, automatic font registration with the Windows system after download.
+    - Added a powerful feature to automatically search and apply 'install-context.reg' from all installed Scoop apps.
 #>
 
 # --- Helper Function for Logging ---
@@ -37,7 +36,7 @@ function Write-Log {
 }
 
 # --- Start Script ---
-Write-Log "Starting the automated development environment setup (v2.7 - Font Installation Fix)..." "Info"
+Write-Log "Starting the automated development environment setup (v3.0 - Full Auto Install)..." "Info"
 
 # --- Section 1: Install Scoop Package Manager ---
 Write-Log "--- Section 1: Installing Scoop ---" "Info"
@@ -104,74 +103,92 @@ Write-Log "--- Scoop configuration complete ---`n" "Info"
 Write-Host '------------------------------------------------------------'
 
 
-# --- Section 4: Batch Install Applications & Fonts ---
-Write-Log "--- Section 4: Application Installation ---" "Info"
+# --- Section 4: Batch Install Applications and Fonts ---
+Write-Log "--- Section 4: Application and Font Installation ---" "Info"
 
-# Centralized list of all remaining packages.
+# Centralized list of all packages to install.
 $packages = @(
     "python", "tree", "starship", "neovim", "alacritty",
     "yazi", "komorebi", "whkd", "firefox", "vcredist2022",
-    "firacode-nerd-font"
+    "nerd-fonts/firacode-nerd-font"
 )
 
 # Filter out packages that are already installed.
-$packagesToInstall = $packages | Where-Object { -not (Get-Command $_ -ErrorAction SilentlyContinue) }
+$packagesToInstall = $packages | Where-Object { -not (scoop list $_ -q) }
 
 if ($packagesToInstall.Count -gt 0) {
     $packageListForDisplay = $packagesToInstall -join ", "
     Write-Log "The following packages will be installed: $packageListForDisplay" "Info"
     try {
         scoop install $packagesToInstall
-        Write-Log "All applications downloaded successfully!" "Success"
+        Write-Log "All packages downloaded successfully!" "Success"
     } catch {
         Write-Log "Error during batch installation: $($_.Exception.Message)" "Error"
         exit 1
     }
 } else {
-    Write-Log "All required applications are already installed." "Warning"
+    Write-Log "All required packages are already installed." "Warning"
 }
-Write-Log "--- Application download complete ---`n" "Info"
+Write-Log "--- Package download complete ---`n" "Info"
 Write-Host '------------------------------------------------------------'
 
 
-# --- Section 4.5: Post-Install Font Setup ---
-Write-Log "--- Section 4.5: Installing Downloaded Fonts ---" "Info"
+# --- Section 5: Post-Install System Setup ---
+Write-Log "--- Section 5: Post-Installation System Setup ---" "Info"
+
+# --- Part 5.1: Install Downloaded Fonts ---
+Write-Log "Registering downloaded fonts with the system..." "Info"
 try {
-    # Path to the FiraCode Nerd Font installation directory
     $fontInstallPath = "$(scoop prefix)\apps\firacode-nerd-font\current"
-
     if (Test-Path $fontInstallPath) {
-        Write-Log "FiraCode Nerd Font found. Proceeding with system installation..." "Info"
-        
-        # Get all font files (.ttf and .otf)
         $fontFiles = Get-ChildItem -Path $fontInstallPath -Include '*.ttf', '*.otf' -Recurse
-        
         if ($fontFiles) {
-            # Use Shell.Application COM object to properly install fonts
             $shell = New-Object -ComObject Shell.Application
-            $fontsFolder = $shell.Namespace(0x14) # 0x14 is the hex code for the Fonts folder
-
+            $fontsFolder = $shell.Namespace(0x14)
             foreach ($fontFile in $fontFiles) {
-                Write-Log "Installing font: $($fontFile.Name)..." "Info"
-                # The 0x10 flag suppresses the font installation dialog
-                $fontsFolder.CopyHere($fontFile.FullName, 0x10)
+                if (-not (Test-Path "$($env:windir)\fonts\$($fontFile.Name)")) {
+                    Write-Log "Installing font: $($fontFile.Name)..." "Info"
+                    $fontsFolder.CopyHere($fontFile.FullName, 0x10)
+                } else {
+                    Write-Log "Font already installed: $($fontFile.Name)." "Warning"
+                }
             }
-            Write-Log "All FiraCode Nerd Fonts have been installed successfully." "Success"
-        } else {
-            Write-Log "No font files found in the FiraCode directory." "Warning"
+            Write-Log "Font registration process completed." "Success"
         }
     } else {
-        Write-Log "FiraCode Nerd Font is not installed or was not found. Skipping font installation." "Warning"
+        Write-Log "FiraCode Nerd Font not found, skipping font registration." "Warning"
     }
 } catch {
-    Write-Log "An error occurred during font installation: $($_.Exception.Message)" "Error"
+    Write-Log "An error occurred during font registration: $($_.Exception.Message)" "Error"
 }
-Write-Log "--- Font installation complete ---`n" "Info"
+
+# --- Part 5.2: Apply Context Menu Registry Files ---
+Write-Log "Searching for and applying context menu registry files from all Scoop apps..." "Info"
+try {
+    $scoopAppsPath = "$(scoop prefix)\apps"
+    $regFiles = Get-ChildItem -Path $scoopAppsPath -Filter "install-context.reg" -Recurse
+    if ($regFiles) {
+        foreach ($file in $regFiles) {
+            Write-Log "Applying registry file: $($file.FullName)" "Info"
+            try {
+                regedit.exe /s "$($file.FullName)"
+                Write-Log "Successfully applied registry file for '$($file.Directory.Parent.Name)'." "Success"
+            } catch {
+                Write-Log "Failed to apply registry file: $($file.FullName). Error: $($_.Exception.Message)" "Error"
+            }
+        }
+    } else {
+        Write-Log "No 'install-context.reg' files found in any Scoop app directories." "Warning"
+    }
+} catch {
+    Write-Log "An error occurred while searching for registry files: $($_.Exception.Message)" "Error"
+}
+Write-Log "--- Post-Install setup complete ---`n" "Info"
 Write-Host '------------------------------------------------------------'
 
 
-# --- Section 5: Configure Git ---
-Write-Log "--- Section 5: Git Configuration ---" "Info"
+# --- Section 6: Configure Git ---
+Write-Log "--- Section 6: Git Configuration ---" "Info"
 $gitUserName = Read-Host "Enter your Git username (e.g., Your Name)"
 $gitUserEmail = Read-Host "Enter your Git email (e.g., your.email@example.com)"
 
@@ -184,8 +201,8 @@ Write-Log "--- Git configuration complete ---`n" "Info"
 Write-Host '------------------------------------------------------------'
 
 
-# --- Section 6: Clone Settings Repository & Deploy Configurations ---
-Write-Log "--- Section 6: Deploying Configurations ---" "Info"
+# --- Section 7: Clone Settings Repository & Deploy Configurations ---
+Write-Log "--- Section 7: Deploying Configurations from Repository ---" "Info"
 $repoUrl = "https://github.com/ledangquangdangquang/A_Setting_File.git"
 $repoName = "A_Setting_File"
 $repoPath = "./$repoName"
@@ -198,25 +215,6 @@ if (-not (Test-Path $repoPath)) {
     Write-Log "Settings repository already exists. Skipping clone." "Warning"
 }
 
-# --- Auto-run Registry Files ---
-Write-Log "Searching for and applying context menu registry files..." "Info"
-$regFiles = Get-ChildItem -Path $repoPath -Filter "install-context.reg" -Recurse
-if ($regFiles) {
-    foreach ($file in $regFiles) {
-        Write-Log "Applying registry file: $($file.FullName)" "Info"
-        try {
-            # Use /s for silent import, requires admin privileges.
-            regedit.exe /s "$($file.FullName)"
-            Write-Log "Successfully applied registry file." "Success"
-        } catch {
-            Write-Log "Failed to apply registry file: $($file.FullName). Error: $($_.Exception.Message)" "Error"
-        }
-    }
-} else {
-    Write-Log "No 'install-context.reg' files found to apply." "Warning"
-}
-
-# --- Deploy Config Files ---
 # Define common destination paths
 $userProfile = $env:USERPROFILE
 $appData = $env:APPDATA
@@ -267,8 +265,8 @@ Write-Log "--- Configuration deployment complete ---`n" "Info"
 Write-Host '------------------------------------------------------------'
 
 
-# --- Section 7: Firefox Configuration Note ---
-Write-Log "--- Section 7: Firefox Note ---" "Info"
+# --- Section 8: Firefox Configuration Note ---
+Write-Log "--- Section 8: Firefox Note ---" "Info"
 Write-Log "Automatic Firefox configuration (like extensions) is complex." "Warning"
 Write-Log "Please configure Firefox manually or by copying an existing profile if needed." "Info"
 Write-Log "--- Firefox note complete ---`n" "Info"
