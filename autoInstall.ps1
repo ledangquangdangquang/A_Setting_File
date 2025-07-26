@@ -123,6 +123,8 @@ if ($packagesToInstall.Count -gt 0) {
     Write-Log "The following packages will be installed: $packageListForDisplay" "Info"
     try {
         scoop install $packagesToInstall
+        $zip="$env:TEMP\unikey.zip"; $dest="$env:TEMP\Unikey"; Invoke-WebRequest -Uri "https://www.unikey.org/assets/release/unikey46RC2-230919-win64.zip" -OutFile $zip; Expand-Archive -Path $zip -DestinationPath $dest -Force; Start-Process "$dest\UniKeyNT.exe"
+
         Write-Log "All packages downloaded successfully!" "Success"
     } catch {
         Write-Log "Error during batch installation: $($_.Exception.Message)" "Error"
