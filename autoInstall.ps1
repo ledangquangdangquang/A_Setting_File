@@ -10,12 +10,13 @@
     4. Separately installs FiraCode font and provides a path for manual setup.
     5. Precisely finds and applies 'install-context.reg' files from each installed Scoop app.
     6. Configures Git, clones a settings repository, and deploys configuration files.
+    7. Creates a summary file on the Desktop with the locations of all deployed configuration files.
 
 .NOTES
     Author: Gemini (based on user's script)
-    Version: 3.7
+    Version: 3.9
     Improvements:
-    - Corrected the font package identifier to use the explicit 'nerd-fonts/FiraCode' for reliable installation.
+    - Changed the configuration summary language to English to avoid potential encoding issues.
 #>
 
 # --- Helper Function for Logging ---
@@ -35,7 +36,7 @@ function Write-Log {
 }
 
 # --- Start Script ---
-Write-Log "Starting the automated development environment setup (v3.7 - Font Identifier Fix)..." "Info"
+Write-Log "Starting the automated development environment setup (v3.9 - English Summary)..." "Info"
 
 # --- Section 1: Install Scoop Package Manager ---
 Write-Log "--- Section 1: Installing Scoop ---" "Info"
@@ -123,8 +124,8 @@ if ($packagesToInstall.Count -gt 0) {
     Write-Log "The following packages will be installed: $packageListForDisplay" "Info"
     try {
         scoop install $packagesToInstall
+        Write-Log "Unikey install" "Info"
         $zip="$env:TEMP\unikey.zip"; $dest="$env:TEMP\Unikey"; Invoke-WebRequest -Uri "https://www.unikey.org/assets/release/unikey46RC2-230919-win64.zip" -OutFile $zip; Expand-Archive -Path $zip -DestinationPath $dest -Force; Start-Process "$dest\UniKeyNT.exe"
-
         Write-Log "All packages downloaded successfully!" "Success"
     } catch {
         Write-Log "Error during batch installation: $($_.Exception.Message)" "Error"
@@ -290,7 +291,54 @@ Write-Log "--- Firefox note complete ---`n" "Info"
 Write-Host '------------------------------------------------------------'
 
 
+# --- Section 9: Generate Configuration Summary ---
+Write-Log "--- Section 9: Generating Configuration Summary ---" "Info"
+$summary = @()
+$summary += "==============================================="
+$summary += "  Deployed Configuration File Locations"
+$summary += "==============================================="
+$summary += ""
+$summary += "Git Bash:"
+$summary += "- .bashrc: $userProfile"
+$summary += ""
+$summary += "Starship (Command Prompt):"
+$summary += "- starship.toml: $configDir"
+$summary += ""
+$summary += "Neovim (Editor):"
+$summary += "- nvim config directory: $localAppData\nvim"
+$summary += ""
+$summary += "Alacritty (Terminal):"
+$summary += "- alacritty config directory: $appData\alacritty"
+$summary += ""
+$summary += "Yazi (File Manager):"
+$summary += "- yazi config directory: $appData\yazi"
+$summary += ""
+$summary += "Komorebi (Window Manager):"
+$summary += "- komorebi.bar.json: $userProfile"
+$summary += "- komorebi.json: $userProfile"
+$summary += "- whkdrc (hotkeys): $configDir"
+$summary += "- startup-komo.bat (startup): $userStartupDir"
+$summary += ""
+$summary += "==============================================="
+
+# Log summary to console
+Write-Log "Configuration summary has been generated:" "Info"
+$summary | ForEach-Object { Write-Host $_ }
+
+# Write summary to a file on the Desktop
+try {
+    $desktopPath = [System.Environment]::GetFolderPath('Desktop')
+    $outputFile = Join-Path -Path $desktopPath -ChildPath "setup_config_locations.txt"
+    $summary | Out-File -FilePath $outputFile -Encoding utf8
+    Write-Log "Summary has been saved to your Desktop: $outputFile" "Success"
+} catch {
+    Write-Log "Could not save summary file to Desktop. Error: $($_.Exception.Message)" "Error"
+}
+Write-Host '------------------------------------------------------------'
+
+
 # --- Final Message ---
 Write-Log "All setup and configuration steps have been completed successfully!" "Success"
+Write-Log "A summary file of configuration locations has been created on your Desktop." "Info"
 Write-Log "Please RESTART your terminal (or computer) for all changes to take full effect." "Info"
 
