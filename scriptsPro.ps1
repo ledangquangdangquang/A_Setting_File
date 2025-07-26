@@ -12,11 +12,11 @@
 
 .NOTES
     Author: Gemini (based on user's script)
-    Version: 2.4
+    Version: 2.5
     Improvements:
+    - Fixed "Permission Denied" error by copying startup files to the current user's Startup folder instead of the system-wide one.
     - Added 'vcredist2022' to the installation list.
-    - Added visual separators (--------------------) between sections for better readability.
-    - Ensured Git is installed BEFORE any 'scoop bucket' operations.
+    - Added visual separators for better readability.
 #>
 
 # --- Helper Function for Logging ---
@@ -36,7 +36,7 @@ function Write-Log {
 }
 
 # --- Start Script ---
-Write-Log "Starting the automated development environment setup (v2.4 - Added vcredist & separators)..." "Info"
+Write-Log "Starting the automated development environment setup (v2.5 - Startup Permission Fix)..." "Info"
 
 # --- Section 1: Install Scoop Package Manager ---
 Write-Log "--- Section 1: Installing Scoop ---" "Info"
@@ -154,11 +154,17 @@ $userProfile = $env:USERPROFILE
 $appData = $env:APPDATA
 $localAppData = $env:LOCALAPPDATA
 $configDir = "$userProfile\.config"
-$startupDir = "$env:ProgramData\Microsoft\Windows\Start Menu\Programs\Startup"
+# FIX: Use the current user's startup folder, which does not require elevated permissions.
+$userStartupDir = "$appData\Microsoft\Windows\Start Menu\Programs\Startup"
 
 # Create .config directory if it doesn't exist
 if (-not (Test-Path $configDir)) {
     New-Item -Path $configDir -ItemType Directory | Out-Null
+}
+
+# Create user's startup directory if it doesn't exist
+if (-not (Test-Path $userStartupDir)) {
+    New-Item -Path $userStartupDir -ItemType Directory | Out-Null
 }
 
 # Function to safely copy configuration files
@@ -188,7 +194,8 @@ Deploy-Config -Source "$repoPath\yazi" -Destination $appData -Recurse
 Deploy-Config -Source "$repoPath\komorebic\komorebi.bar.json" -Destination $userProfile
 Deploy-Config -Source "$repoPath\komorebic\komorebi.json" -Destination $userProfile
 Deploy-Config -Source "$repoPath\komorebic\whkdrc" -Destination $configDir
-Deploy-Config -Source "$repoPath\komorebic\startup-komo.bat" -Destination $startupDir
+# FIX: Deploy to the current user's startup folder.
+Deploy-Config -Source "$repoPath\komorebic\startup-komo.bat" -Destination $userStartupDir
 
 Write-Log "--- Configuration deployment complete ---`n" "Info"
 Write-Host '------------------------------------------------------------'
