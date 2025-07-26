@@ -6,18 +6,17 @@
     This script performs the following actions:
     1. Installs Scoop and its core dependency, Git.
     2. Configures Scoop buckets and displays the current list.
-    3. Batch-installs essential development tools and fonts.
-    4. Provides a path for manual font installation.
+    3. Batch-installs essential development tools.
+    4. Separately installs FiraCode font for better reliability and provides a path for manual setup.
     5. Automatically finds and applies all 'install-context.reg' files from installed Scoop apps.
     6. Configures Git, clones a settings repository, and deploys configuration files.
 
 .NOTES
     Author: Gemini (based on user's script)
-    Version: 3.1
+    Version: 3.2
     Improvements:
-    - Displays bucket list after configuration for immediate verification.
-    - Replaced automatic font installation with a user-friendly log message pointing to the font directory.
-    - Fixed a potential "Cannot find drive" error by adding a path validation check before searching for registry files.
+    - Isolated font installation into a separate, dedicated step to fix issues with '/' in package names during batch installs.
+    - This makes the script more robust and reliable.
 #>
 
 # --- Helper Function for Logging ---
@@ -37,7 +36,7 @@ function Write-Log {
 }
 
 # --- Start Script ---
-Write-Log "Starting the automated development environment setup (v3.1 - Manual Font Setup)..." "Info"
+Write-Log "Starting the automated development environment setup (v3.2 - Isolated Font Install)..." "Info"
 
 # --- Section 1: Install Scoop Package Manager ---
 Write-Log "--- Section 1: Installing Scoop ---" "Info"
@@ -108,14 +107,13 @@ Write-Log "--- Scoop configuration complete ---`n" "Info"
 Write-Host '------------------------------------------------------------'
 
 
-# --- Section 4: Batch Install Applications and Fonts ---
-Write-Log "--- Section 4: Application and Font Installation ---" "Info"
+# --- Section 4: Batch Install Applications ---
+Write-Log "--- Section 4: Application Installation ---" "Info"
 
-# Centralized list of all packages to install.
+# Centralized list of all packages to install (fonts are handled separately).
 $packages = @(
     "python", "tree", "starship", "neovim", "alacritty",
-    "yazi", "komorebi", "whkd", "firefox", "vcredist2022",
-    "nerd-fonts/FiraCode"
+    "yazi", "komorebi", "whkd", "firefox", "vcredist2022"
 )
 
 # Filter out packages that are already installed.
@@ -141,16 +139,34 @@ Write-Host '------------------------------------------------------------'
 # --- Section 5: Post-Install System Setup ---
 Write-Log "--- Section 5: Post-Installation System Setup ---" "Info"
 
-# --- Part 5.1: Provide Font Installation Path ---
-Write-Log "Checking for downloaded fonts..." "Info"
-$fontInstallPath = "$(scoop prefix)\apps\FiraCode\current"
+# --- Part 5.1: Install and Guide Font Setup ---
+Write-Log "Handling FiraCode font installation..." "Info"
+$fontPackageName = "FiraCode"
+$fontPackageIdentifier = "nerd-fonts/FiraCode"
+$fontInstallPath = "$(scoop prefix)\apps\$fontPackageName\current"
+
+# Install the font package if it's not already installed.
+if (-not (Test-Path $fontInstallPath)) {
+    Write-Log "FiraCode package not found. Installing with explicit identifier..." "Info"
+    try {
+        scoop install $fontPackageIdentifier
+        Write-Log "FiraCode package downloaded successfully." "Success"
+    } catch {
+        Write-Log "Error downloading FiraCode package: $($_.Exception.Message)" "Error"
+    }
+} else {
+    Write-Log "FiraCode package is already installed." "Warning"
+}
+
+# Provide the path for manual installation.
 if (Test-Path $fontInstallPath) {
     Write-Log "ACTION REQUIRED: Fonts for 'FiraCode' are downloaded." "Warning"
     Write-Log "To install, please go to the following folder, select all font files, right-click and choose 'Install':" "Warning"
-    Write-Log "$fontInstallPath" -Type "Success" # Use Success color to make the path stand out
+    Write-Log "$fontInstallPath" -Type "Success"
 } else {
-    Write-Log "FiraCode package not found. If you wanted to install it, please check for errors in the previous step." "Warning"
+    Write-Log "FiraCode package directory not found after installation attempt. Skipping manual setup guide." "Error"
 }
+
 
 # --- Part 5.2: Apply Context Menu Registry Files ---
 Write-Log "Searching for and applying context menu registry files from all Scoop apps..." "Info"
