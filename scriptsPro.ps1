@@ -4,21 +4,18 @@
 
 .DESCRIPTION
     This script performs the following actions:
-    1. Checks for and installs/updates Scoop package manager.
-    2. Installs Git as a core dependency immediately after Scoop setup.
-    3. Batch-installs the remaining essential development tools for improved performance.
-    4. Configures Git with user-provided credentials.
-    5. Clones a settings repository.
-    6. Deploys configuration files for all installed tools.
-    7. Provides clear logging for each step.
+    1. Installs Scoop package manager.
+    2. Installs Git as a core dependency for Scoop's bucket management.
+    3. Configures Scoop buckets (like 'extras').
+    4. Batch-installs the remaining essential development tools.
+    5. Configures Git, clones a settings repository, and deploys configuration files.
 
 .NOTES
     Author: Gemini (based on user's script)
-    Version: 2.1
+    Version: 2.3
     Improvements:
-    - Prioritized Git installation to resolve dependencies for subsequent steps.
-    - Maintained batch installation for all other non-essential packages.
-    - Restructured sections for better logical flow.
+    - Critical Fix: Ensured Git is installed BEFORE any 'scoop bucket' operations to prevent errors.
+    - Restructured the script for a more robust and logical installation flow.
 #>
 
 # --- Helper Function for Logging ---
@@ -38,40 +35,32 @@ function Write-Log {
 }
 
 # --- Start Script ---
-Write-Log "Starting the automated development environment setup (v2.1 - Git Priority)..." "Info"
+Write-Log "Starting the automated development environment setup (v2.3 - Bucket Dependency Fix)..." "Info"
 
-# --- Section 1: Scoop Package Manager ---
-Write-Log "--- Section 1: Scoop Package Manager ---" "Info"
+# --- Section 1: Install Scoop Package Manager ---
+Write-Log "--- Section 1: Installing Scoop ---" "Info"
 if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
     Write-Log "Scoop not found. Proceeding with installation..." "Info"
     try {
         Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force -ErrorAction Stop
         Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')
         Write-Log "Scoop installed successfully!" "Success"
-        scoop bucket add extras
-        Write-Log "Added 'extras' bucket to Scoop." "Success"
     } catch {
         Write-Log "Critical error installing Scoop: $($_.Exception.Message)" "Error"
         Write-Log "Please check your network connection or permissions and rerun the script." "Error"
         exit 1
     }
 } else {
-    Write-Log "Scoop is already installed. Updating Scoop and apps..." "Warning"
-    scoop update
-    Write-Log "Scoop updated." "Success"
-    if (-not (scoop bucket list | Select-String -Pattern "extras" -Quiet)) {
-        scoop bucket add extras
-        Write-Log "Added 'extras' bucket to Scoop." "Success"
-    }
+    Write-Log "Scoop is already installed." "Warning"
 }
-Write-Log "--- Scoop setup complete ---`n" "Info"
+Write-Log "--- Scoop installation complete ---`n" "Info"
 
 
-# --- Section 2: Install Git (Core Dependency) ---
-# Git is installed first because it's required to clone the settings repository later.
+# --- Section 2: Install Git (Core Dependency for Scoop) ---
+# Git MUST be installed before managing Scoop buckets, as buckets are Git repositories.
 Write-Log "--- Section 2: Installing Git ---" "Info"
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
-    Write-Log "Git not found. Installing now..." "Info"
+    Write-Log "Git not found. Installing now as a core dependency..." "Info"
     try {
         scoop install git
         Write-Log "Git installed successfully!" "Success"
@@ -85,10 +74,24 @@ if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
 Write-Log "--- Git installation complete ---`n" "Info"
 
 
-# --- Section 3: Batch Install Remaining Applications ---
-Write-Log "--- Section 3: Application Installation ---" "Info"
+# --- Section 3: Configure Scoop Buckets & Update ---
+# Now that Git is installed, we can safely manage buckets and update Scoop.
+Write-Log "--- Section 3: Configuring Scoop Buckets ---" "Info"
+Write-Log "Updating Scoop and ensuring 'extras' bucket is added..." "Info"
+scoop update
+if (-not (scoop bucket list | Select-String -Pattern "extras" -Quiet)) {
+    scoop bucket add extras
+    Write-Log "Added 'extras' bucket to Scoop." "Success"
+} else {
+    Write-Log "'extras' bucket already exists." "Warning"
+}
+Write-Log "--- Scoop configuration complete ---`n" "Info"
 
-# Centralized list of all remaining packages. Git has been removed from this list.
+
+# --- Section 4: Batch Install Remaining Applications ---
+Write-Log "--- Section 4: Application Installation ---" "Info"
+
+# Centralized list of all remaining packages.
 $packages = @(
     "python", "tree", "starship", "neovim", "alacritty",
     "yazi", "komorebi", "whkd", "firefox"
@@ -98,11 +101,10 @@ $packages = @(
 $packagesToInstall = $packages | Where-Object { -not (Get-Command $_ -ErrorAction SilentlyContinue) }
 
 if ($packagesToInstall.Count -gt 0) {
-    $packageList = $packagesToInstall -join " "
-    Write-Log "The following packages will be installed: $packageList" "Info"
+    $packageListForDisplay = $packagesToInstall -join ", "
+    Write-Log "The following packages will be installed: $packageListForDisplay" "Info"
     try {
-        # Install all missing packages in a single command for maximum efficiency.
-        scoop install $packageList
+        scoop install $packagesToInstall
         Write-Log "All remaining applications installed successfully!" "Success"
     } catch {
         Write-Log "Error during batch installation: $($_.Exception.Message)" "Error"
@@ -114,8 +116,8 @@ if ($packagesToInstall.Count -gt 0) {
 Write-Log "--- Application installation complete ---`n" "Info"
 
 
-# --- Section 4: Configure Git ---
-Write-Log "--- Section 4: Git Configuration ---" "Info"
+# --- Section 5: Configure Git ---
+Write-Log "--- Section 5: Git Configuration ---" "Info"
 $gitUserName = Read-Host "Enter your Git username (e.g., Your Name)"
 $gitUserEmail = Read-Host "Enter your Git email (e.g., your.email@example.com)"
 
@@ -127,8 +129,8 @@ Write-Log "Git user.name, user.email, and 'acp' alias configured." "Success"
 Write-Log "--- Git configuration complete ---`n" "Info"
 
 
-# --- Section 5: Clone Settings Repository & Configure Applications ---
-Write-Log "--- Section 5: Deploying Configurations ---" "Info"
+# --- Section 6: Clone Settings Repository & Deploy Configurations ---
+Write-Log "--- Section 6: Deploying Configurations ---" "Info"
 $repoUrl = "https://github.com/ledangquangdangquang/A_Setting_File.git"
 $repoName = "A_Setting_File"
 $repoPath = "./$repoName"
@@ -184,8 +186,8 @@ Deploy-Config -Source "$repoPath\komorebic\startup-komo.bat" -Destination $start
 
 Write-Log "--- Configuration deployment complete ---`n" "Info"
 
-# --- Section 6: Firefox Configuration Note ---
-Write-Log "--- Section 6: Firefox Note ---" "Info"
+# --- Section 7: Firefox Configuration Note ---
+Write-Log "--- Section 7: Firefox Note ---" "Info"
 Write-Log "Automatic Firefox configuration (like extensions) is complex." "Warning"
 Write-Log "Please configure Firefox manually or by copying an existing profile if needed." "Info"
 Write-Log "--- Firefox note complete ---`n" "Info"
