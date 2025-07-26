@@ -1,4 +1,4 @@
-<h1 align="center">Config app in my window 10</h1>
+<h1 align="center">Config app in Windows 10</h1>
 
 ## Auto scripts install (author: gemini)
 * ***Input this scipt in window powershell***
