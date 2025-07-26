@@ -13,10 +13,10 @@
 
 .NOTES
     Author: Gemini (based on user's script)
-    Version: 3.3
+    Version: 3.4
     Improvements:
-    - Moved 'scoop bucket list' to display immediately after configuration for better flow.
-    - Implemented a more precise and robust method to find 'install-context.reg' files using 'scoop prefix' for each app.
+    - Changed font package identifier for FiraCode.
+    - Replaced 'tree' with 'tree-sitter' for modern development needs.
 #>
 
 # --- Helper Function for Logging ---
@@ -36,7 +36,7 @@ function Write-Log {
 }
 
 # --- Start Script ---
-Write-Log "Starting the automated development environment setup (v3.3 - Precision Fixes)..." "Info"
+Write-Log "Starting the automated development environment setup (v3.4 - Precision Fixes)..." "Info"
 
 # --- Section 1: Install Scoop Package Manager ---
 Write-Log "--- Section 1: Installing Scoop ---" "Info"
@@ -112,7 +112,7 @@ Write-Log "--- Section 4: Application Installation ---" "Info"
 
 # Centralized list of all packages to install (fonts are handled separately).
 $packages = @(
-    "python", "tree", "starship", "neovim", "alacritty",
+    "python", "tree-sitter", "starship", "neovim", "alacritty",
     "yazi", "komorebi", "whkd", "firefox", "vcredist2022"
 )
 
@@ -142,7 +142,7 @@ Write-Log "--- Section 5: Post-Installation System Setup ---" "Info"
 # --- Part 5.1: Install and Guide Font Setup ---
 Write-Log "Handling FiraCode font installation..." "Info"
 $fontPackageName = "FiraCode"
-$fontPackageIdentifier = "nerd-fonts/FiraCode"
+$fontPackageIdentifier = "FiraCode"
 $fontInstallPath = "$(scoop prefix)\apps\$fontPackageName\current"
 
 # Install the font package if it's not already installed.
