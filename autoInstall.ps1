@@ -4,19 +4,20 @@
 
 .DESCRIPTION
     This script performs the following actions:
-    1. Installs Scoop package manager.
-    2. Installs Git as a core dependency for Scoop's bucket management.
-    3. Configures Scoop buckets (like 'extras').
-    4. Batch-installs the remaining essential development tools, including vcredist2022.
+    1. Installs Scoop and its core dependency, Git.
+    2. Configures Scoop buckets, including 'nerd-fonts' for custom fonts.
+    3. Batch-installs essential development tools, including FiraCode Nerd Font.
+    4. Automatically installs the downloaded fonts into the Windows system.
     5. Configures Git, clones a settings repository, and deploys configuration files.
+    6. Automatically imports any 'install-context.reg' files found in the settings repository.
 
 .NOTES
     Author: Gemini (based on user's script)
-    Version: 2.5
+    Version: 2.7
     Improvements:
-    - Fixed "Permission Denied" error by copying startup files to the current user's Startup folder instead of the system-wide one.
-    - Added 'vcredist2022' to the installation list.
-    - Added visual separators for better readability.
+    - Critical Fix: Added a post-installation step to automatically register downloaded fonts with the Windows system, making them immediately available.
+    - Added automatic installation of FiraCode Nerd Font.
+    - Added logic to automatically find and run 'install-context.reg' files.
 #>
 
 # --- Helper Function for Logging ---
@@ -36,7 +37,7 @@ function Write-Log {
 }
 
 # --- Start Script ---
-Write-Log "Starting the automated development environment setup (v2.5 - Startup Permission Fix)..." "Info"
+Write-Log "Starting the automated development environment setup (v2.7 - Font Installation Fix)..." "Info"
 
 # --- Section 1: Install Scoop Package Manager ---
 Write-Log "--- Section 1: Installing Scoop ---" "Info"
@@ -80,25 +81,37 @@ Write-Host '------------------------------------------------------------'
 # --- Section 3: Configure Scoop Buckets & Update ---
 # Now that Git is installed, we can safely manage buckets and update Scoop.
 Write-Log "--- Section 3: Configuring Scoop Buckets ---" "Info"
-Write-Log "Updating Scoop and ensuring 'extras' bucket is added..." "Info"
+Write-Log "Updating Scoop and ensuring required buckets are added..." "Info"
 scoop update
+
+# Add 'extras' bucket
 if (-not (scoop bucket list | Select-String -Pattern "extras" -Quiet)) {
     scoop bucket add extras
     Write-Log "Added 'extras' bucket to Scoop." "Success"
 } else {
     Write-Log "'extras' bucket already exists." "Warning"
 }
+
+# Add 'nerd-fonts' bucket for font installation
+if (-not (scoop bucket list | Select-String -Pattern "nerd-fonts" -Quiet)) {
+    scoop bucket add nerd-fonts
+    Write-Log "Added 'nerd-fonts' bucket to Scoop." "Success"
+} else {
+    Write-Log "'nerd-fonts' bucket already exists." "Warning"
+}
+
 Write-Log "--- Scoop configuration complete ---`n" "Info"
 Write-Host '------------------------------------------------------------'
 
 
-# --- Section 4: Batch Install Remaining Applications ---
+# --- Section 4: Batch Install Applications & Fonts ---
 Write-Log "--- Section 4: Application Installation ---" "Info"
 
 # Centralized list of all remaining packages.
 $packages = @(
     "python", "tree", "starship", "neovim", "alacritty",
-    "yazi", "komorebi", "whkd", "firefox", "vcredist2022"
+    "yazi", "komorebi", "whkd", "firefox", "vcredist2022",
+    "firacode-nerd-font"
 )
 
 # Filter out packages that are already installed.
@@ -109,15 +122,51 @@ if ($packagesToInstall.Count -gt 0) {
     Write-Log "The following packages will be installed: $packageListForDisplay" "Info"
     try {
         scoop install $packagesToInstall
-        Write-Log "All remaining applications installed successfully!" "Success"
+        Write-Log "All applications downloaded successfully!" "Success"
     } catch {
         Write-Log "Error during batch installation: $($_.Exception.Message)" "Error"
         exit 1
     }
 } else {
-    Write-Log "All remaining applications are already installed." "Warning"
+    Write-Log "All required applications are already installed." "Warning"
 }
-Write-Log "--- Application installation complete ---`n" "Info"
+Write-Log "--- Application download complete ---`n" "Info"
+Write-Host '------------------------------------------------------------'
+
+
+# --- Section 4.5: Post-Install Font Setup ---
+Write-Log "--- Section 4.5: Installing Downloaded Fonts ---" "Info"
+try {
+    # Path to the FiraCode Nerd Font installation directory
+    $fontInstallPath = "$(scoop prefix)\apps\firacode-nerd-font\current"
+
+    if (Test-Path $fontInstallPath) {
+        Write-Log "FiraCode Nerd Font found. Proceeding with system installation..." "Info"
+        
+        # Get all font files (.ttf and .otf)
+        $fontFiles = Get-ChildItem -Path $fontInstallPath -Include '*.ttf', '*.otf' -Recurse
+        
+        if ($fontFiles) {
+            # Use Shell.Application COM object to properly install fonts
+            $shell = New-Object -ComObject Shell.Application
+            $fontsFolder = $shell.Namespace(0x14) # 0x14 is the hex code for the Fonts folder
+
+            foreach ($fontFile in $fontFiles) {
+                Write-Log "Installing font: $($fontFile.Name)..." "Info"
+                # The 0x10 flag suppresses the font installation dialog
+                $fontsFolder.CopyHere($fontFile.FullName, 0x10)
+            }
+            Write-Log "All FiraCode Nerd Fonts have been installed successfully." "Success"
+        } else {
+            Write-Log "No font files found in the FiraCode directory." "Warning"
+        }
+    } else {
+        Write-Log "FiraCode Nerd Font is not installed or was not found. Skipping font installation." "Warning"
+    }
+} catch {
+    Write-Log "An error occurred during font installation: $($_.Exception.Message)" "Error"
+}
+Write-Log "--- Font installation complete ---`n" "Info"
 Write-Host '------------------------------------------------------------'
 
 
@@ -149,12 +198,30 @@ if (-not (Test-Path $repoPath)) {
     Write-Log "Settings repository already exists. Skipping clone." "Warning"
 }
 
+# --- Auto-run Registry Files ---
+Write-Log "Searching for and applying context menu registry files..." "Info"
+$regFiles = Get-ChildItem -Path $repoPath -Filter "install-context.reg" -Recurse
+if ($regFiles) {
+    foreach ($file in $regFiles) {
+        Write-Log "Applying registry file: $($file.FullName)" "Info"
+        try {
+            # Use /s for silent import, requires admin privileges.
+            regedit.exe /s "$($file.FullName)"
+            Write-Log "Successfully applied registry file." "Success"
+        } catch {
+            Write-Log "Failed to apply registry file: $($file.FullName). Error: $($_.Exception.Message)" "Error"
+        }
+    }
+} else {
+    Write-Log "No 'install-context.reg' files found to apply." "Warning"
+}
+
+# --- Deploy Config Files ---
 # Define common destination paths
 $userProfile = $env:USERPROFILE
 $appData = $env:APPDATA
 $localAppData = $env:LOCALAPPDATA
 $configDir = "$userProfile\.config"
-# FIX: Use the current user's startup folder, which does not require elevated permissions.
 $userStartupDir = "$appData\Microsoft\Windows\Start Menu\Programs\Startup"
 
 # Create .config directory if it doesn't exist
@@ -194,7 +261,6 @@ Deploy-Config -Source "$repoPath\yazi" -Destination $appData -Recurse
 Deploy-Config -Source "$repoPath\komorebic\komorebi.bar.json" -Destination $userProfile
 Deploy-Config -Source "$repoPath\komorebic\komorebi.json" -Destination $userProfile
 Deploy-Config -Source "$repoPath\komorebic\whkdrc" -Destination $configDir
-# FIX: Deploy to the current user's startup folder.
 Deploy-Config -Source "$repoPath\komorebic\startup-komo.bat" -Destination $userStartupDir
 
 Write-Log "--- Configuration deployment complete ---`n" "Info"
