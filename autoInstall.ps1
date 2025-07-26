@@ -140,8 +140,8 @@ Write-Log "--- Section 5: Post-Installation System Setup ---" "Info"
 
 # --- Part 5.1: Install and Guide Font Setup ---
 Write-Log "Handling FiraCode font installation..." "Info"
-$fontPackageName = "FiraCode"
-$fontPackageIdentifier = "nerd-fonts/FiraCode"
+$fontPackageName = "FiraCode-NF"
+$fontPackageIdentifier = "nerd-fonts/FiraCode-NF"
 
 # LOGIC FIX: First, check if the package is installed. If not, install it.
 if (-not (scoop list $fontPackageName -q)) {
