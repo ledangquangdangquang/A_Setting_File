@@ -5,7 +5,6 @@ Input in window powershell
 Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force; Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ledangquangdangquang/A_Setting_File/refs/heads/main/autoInstall.ps1" -OutFile "$env:USERPROFILE\Downloads\autoInstall.ps1"; Unblock-File "$env:USERPROFILE\Downloads\autoInstall.ps1"; & "$env:USERPROFILE\Downloads\autoInstall.ps1"
 ```
 
----
 ## There are all the app:
 - Alacritty terminal
 - Window terminal 
