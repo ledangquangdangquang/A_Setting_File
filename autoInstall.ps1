@@ -40,7 +40,7 @@ function Write-Log {
 
 # --- Start Script ---
 clear
-$ascii = @'
+$author= @'
   _          _                                                     _
  | | ___  __| | __ _ _ __   __ _  __ _ _   _  __ _ _ __   __ _  __| | __ _ _ __   __ _  __ _ _   _  __ _ _ __   __ _
  | |/ _ \/ _` |/ _` | '_ \ / _` |/ _` | | | |/ _` | '_ \ / _` |/ _` |/ _` | '_ \ / _` |/ _` | | | |/ _` | '_ \ / _` |
@@ -49,7 +49,7 @@ $ascii = @'
                            |___/    |_|                  |___/                   |___/    |_|                  |___/
 '@
 
-Write-Host $ascii -ForegroundColor Magenta
+Write-Host $author -ForegroundColor Magenta
 Write-Log "Starting the automated development environment setup (v4.2 - With Firefox Config)..." "Info"
 
 # --- Section 1: Install Scoop Package Manager ---
