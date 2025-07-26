@@ -13,9 +13,9 @@
 
 .NOTES
     Author: Gemini (based on user's script)
-    Version: 3.5
+    Version: 3.7
     Improvements:
-    - Simplified font path retrieval using 'scoop prefix' directly for better robustness.
+    - Corrected the font package identifier to use the explicit 'nerd-fonts/FiraCode' for reliable installation.
 #>
 
 # --- Helper Function for Logging ---
@@ -35,7 +35,7 @@ function Write-Log {
 }
 
 # --- Start Script ---
-Write-Log "Starting the automated development environment setup (v3.5 - Precision Fixes)..." "Info"
+Write-Log "Starting the automated development environment setup (v3.7 - Font Identifier Fix)..." "Info"
 
 # --- Section 1: Install Scoop Package Manager ---
 Write-Log "--- Section 1: Installing Scoop ---" "Info"
@@ -98,7 +98,7 @@ if (-not (scoop bucket list | Select-String -Pattern "nerd-fonts" -Quiet)) {
     Write-Log "'nerd-fonts' bucket already exists." "Warning"
 }
 
-# FIX: Display the final bucket list for verification right after configuration.
+# Display the final bucket list for verification
 Write-Log "Displaying current bucket list..." "Info"
 scoop bucket list
 
@@ -141,17 +141,13 @@ Write-Log "--- Section 5: Post-Installation System Setup ---" "Info"
 # --- Part 5.1: Install and Guide Font Setup ---
 Write-Log "Handling FiraCode font installation..." "Info"
 $fontPackageName = "FiraCode"
-$fontPackageIdentifier = "FiraCode"
-# Using 'scoop prefix' is a more robust way to get the installation path.
-$fontInstallPath = (scoop prefix $fontPackageName 2>$null)
+$fontPackageIdentifier = "nerd-fonts/FiraCode"
 
-# Install the font package if it's not already installed.
-if (-not (Test-Path $fontInstallPath)) {
-    Write-Log "FiraCode package not found. Installing with explicit identifier..." "Info"
+# LOGIC FIX: First, check if the package is installed. If not, install it.
+if (-not (scoop list $fontPackageName -q)) {
+    Write-Log "FiraCode package not found. Installing now..." "Info"
     try {
         scoop install $fontPackageIdentifier
-        # Re-fetch the path after installation
-        $fontInstallPath = (scoop prefix $fontPackageName 2>$null)
         Write-Log "FiraCode package downloaded successfully." "Success"
     } catch {
         Write-Log "Error downloading FiraCode package: $($_.Exception.Message)" "Error"
@@ -160,19 +156,24 @@ if (-not (Test-Path $fontInstallPath)) {
     Write-Log "FiraCode package is already installed." "Warning"
 }
 
-# Provide the path for manual installation.
-if ($fontInstallPath -and (Test-Path $fontInstallPath)) {
-    Write-Log "ACTION REQUIRED: Fonts for 'FiraCode' are downloaded." "Warning"
-    Write-Log "To install, please go to the following folder, select all font files, right-click and choose 'Install':" "Warning"
-    Write-Log "$fontInstallPath" -Type "Success"
-} else {
-    Write-Log "FiraCode package directory not found after installation attempt. Skipping manual setup guide." "Error"
+# LOGIC FIX: Now that it's installed (or was already), get the path and provide guidance.
+try {
+    $fontInstallPath = (scoop prefix $fontPackageName 2>$null)
+    if ($fontInstallPath -and (Test-Path $fontInstallPath)) {
+        Write-Log "ACTION REQUIRED: Fonts for 'FiraCode' are downloaded." "Warning"
+        Write-Log "To install, please go to the following folder, select all font files, right-click and choose 'Install':" "Warning"
+        Write-Log "$fontInstallPath" -Type "Success"
+    } else {
+        Write-Log "Could not find FiraCode package directory even after installation attempt. Skipping manual setup guide." "Error"
+    }
+} catch {
+     Write-Log "An error occurred while getting the FiraCode prefix path: $($_.Exception.Message)" "Error"
 }
 
 
 # --- Part 5.2: Apply Context Menu Registry Files ---
 Write-Log "Searching for and applying context menu registry files..." "Info"
-# FIX: Iterate through each installed package to find its specific context file.
+# Iterate through each installed package to find its specific context file.
 $allInstalledPackages = $packages + $fontPackageName
 foreach ($pkg in $allInstalledPackages) {
     try {
