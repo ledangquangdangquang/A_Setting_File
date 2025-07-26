@@ -1,4 +1,5 @@
 <h1 align="center">Config app in my window 10</h1>
+
 ## Install (author: gemini)
 Input in window powershell
 ```shell
