@@ -54,7 +54,10 @@
   margin: 2px !important;
   display: flex !important;
 }
-
+#TabsToolbar-customization-target {
+    height: 33px;
+    font-size:14px;
+}
 /* Window control buttons (min, resize and close) */
 .titlebar-buttonbox-container {
   display: flex !important;
@@ -141,6 +144,12 @@
 }
 
 /*  Tabs close button  */
+.tab-content {
+     height: 38px;
+}
+.tabbrowser-tab{
+     height: 68px;
+}
 .tabbrowser-tab:not(:hover) .tab-close-button {
     opacity: 0% !important;
     transition: 0.3s !important;
