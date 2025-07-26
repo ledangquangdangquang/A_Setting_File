@@ -161,8 +161,9 @@ try {
     $fontInstallPath = (scoop prefix $fontPackageName 2>$null)
     if ($fontInstallPath -and (Test-Path $fontInstallPath)) {
         Write-Log "ACTION REQUIRED: Fonts for 'FiraCode' are downloaded." "Warning"
-        Write-Log "To install, please go to the following folder, select all font files, right-click and choose 'Install':" "Warning"
-        Write-Log "$fontInstallPath" -Type "Success"
+        Write-Log "To install, please go to the following folder, select all font files, right-click and choose 'Install'" "Warning"
+        Write-Log "$fontInstallPath" -Type "Warning"
+        start $fontInstallPath
     } else {
         Write-Log "Could not find FiraCode package directory even after installation attempt. Skipping manual setup guide." "Error"
     }
