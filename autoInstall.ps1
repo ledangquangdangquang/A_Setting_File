@@ -37,6 +37,17 @@ function Write-Log {
 }
 
 # --- Start Script ---
+clear
+$ascii = @'
+  _          _                                                     _
+ | | ___  __| | __ _ _ __   __ _  __ _ _   _  __ _ _ __   __ _  __| | __ _ _ __   __ _  __ _ _   _  __ _ _ __   __ _
+ | |/ _ \/ _` |/ _` | '_ \ / _` |/ _` | | | |/ _` | '_ \ / _` |/ _` |/ _` | '_ \ / _` |/ _` | | | |/ _` | '_ \ / _` |
+ | |  __/ (_| | (_| | | | | (_| | (_| | |_| | (_| | | | | (_| | (_| | (_| | | | | (_| | (_| | |_| | (_| | | | | (_| |
+ |_|\___|\__,_|\__,_|_| |_|\__, |\__, |\__,_|\__,_|_| |_|\__, |\__,_|\__,_|_| |_|\__, |\__, |\__,_|\__,_|_| |_|\__, |
+                           |___/    |_|                  |___/                   |___/    |_|                  |___/
+'@
+
+Write-Host $ascii -ForegroundColor Cyan
 Write-Log "Starting the automated development environment setup (v4.0 - Robust Unikey Install)..." "Info"
 
 # --- Section 1: Install Scoop Package Manager ---
