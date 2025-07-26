@@ -5,18 +5,19 @@
 .DESCRIPTION
     This script performs the following actions:
     1. Installs Scoop and its core dependency, Git.
-    2. Configures Scoop buckets, including 'nerd-fonts'.
+    2. Configures Scoop buckets and displays the current list.
     3. Batch-installs essential development tools and fonts.
-    4. Automatically installs downloaded fonts into the Windows system.
+    4. Provides a path for manual font installation.
     5. Automatically finds and applies all 'install-context.reg' files from installed Scoop apps.
     6. Configures Git, clones a settings repository, and deploys configuration files.
 
 .NOTES
     Author: Gemini (based on user's script)
-    Version: 3.0
+    Version: 3.1
     Improvements:
-    - Re-implemented robust, automatic font registration with the Windows system after download.
-    - Added a powerful feature to automatically search and apply 'install-context.reg' from all installed Scoop apps.
+    - Displays bucket list after configuration for immediate verification.
+    - Replaced automatic font installation with a user-friendly log message pointing to the font directory.
+    - Fixed a potential "Cannot find drive" error by adding a path validation check before searching for registry files.
 #>
 
 # --- Helper Function for Logging ---
@@ -36,7 +37,7 @@ function Write-Log {
 }
 
 # --- Start Script ---
-Write-Log "Starting the automated development environment setup (v3.0 - Full Auto Install)..." "Info"
+Write-Log "Starting the automated development environment setup (v3.1 - Manual Font Setup)..." "Info"
 
 # --- Section 1: Install Scoop Package Manager ---
 Write-Log "--- Section 1: Installing Scoop ---" "Info"
@@ -99,6 +100,10 @@ if (-not (scoop bucket list | Select-String -Pattern "nerd-fonts" -Quiet)) {
     Write-Log "'nerd-fonts' bucket already exists." "Warning"
 }
 
+# Display the final bucket list for verification
+Write-Log "Displaying current bucket list..." "Info"
+scoop bucket list
+
 Write-Log "--- Scoop configuration complete ---`n" "Info"
 Write-Host '------------------------------------------------------------'
 
@@ -136,52 +141,42 @@ Write-Host '------------------------------------------------------------'
 # --- Section 5: Post-Install System Setup ---
 Write-Log "--- Section 5: Post-Installation System Setup ---" "Info"
 
-# --- Part 5.1: Install Downloaded Fonts ---
-Write-Log "Registering downloaded fonts with the system..." "Info"
-try {
-    $fontInstallPath = "$(scoop prefix)\apps\firacode-nerd-font\current"
-    if (Test-Path $fontInstallPath) {
-        $fontFiles = Get-ChildItem -Path $fontInstallPath -Include '*.ttf', '*.otf' -Recurse
-        if ($fontFiles) {
-            $shell = New-Object -ComObject Shell.Application
-            $fontsFolder = $shell.Namespace(0x14)
-            foreach ($fontFile in $fontFiles) {
-                if (-not (Test-Path "$($env:windir)\fonts\$($fontFile.Name)")) {
-                    Write-Log "Installing font: $($fontFile.Name)..." "Info"
-                    $fontsFolder.CopyHere($fontFile.FullName, 0x10)
-                } else {
-                    Write-Log "Font already installed: $($fontFile.Name)." "Warning"
-                }
-            }
-            Write-Log "Font registration process completed." "Success"
-        }
-    } else {
-        Write-Log "FiraCode Nerd Font not found, skipping font registration." "Warning"
-    }
-} catch {
-    Write-Log "An error occurred during font registration: $($_.Exception.Message)" "Error"
+# --- Part 5.1: Provide Font Installation Path ---
+Write-Log "Checking for downloaded fonts..." "Info"
+$fontInstallPath = "$(scoop prefix)\apps\FiraCode\current"
+if (Test-Path $fontInstallPath) {
+    Write-Log "ACTION REQUIRED: Fonts for 'FiraCode' are downloaded." "Warning"
+    Write-Log "To install, please go to the following folder, select all font files, right-click and choose 'Install':" "Warning"
+    Write-Log "$fontInstallPath" -Type "Success" # Use Success color to make the path stand out
+} else {
+    Write-Log "FiraCode package not found. If you wanted to install it, please check for errors in the previous step." "Warning"
 }
 
 # --- Part 5.2: Apply Context Menu Registry Files ---
 Write-Log "Searching for and applying context menu registry files from all Scoop apps..." "Info"
-try {
-    $scoopAppsPath = "$(scoop prefix)\apps"
-    $regFiles = Get-ChildItem -Path $scoopAppsPath -Filter "install-context.reg" -Recurse
-    if ($regFiles) {
-        foreach ($file in $regFiles) {
-            Write-Log "Applying registry file: $($file.FullName)" "Info"
-            try {
-                regedit.exe /s "$($file.FullName)"
-                Write-Log "Successfully applied registry file for '$($file.Directory.Parent.Name)'." "Success"
-            } catch {
-                Write-Log "Failed to apply registry file: $($file.FullName). Error: $($_.Exception.Message)" "Error"
+$scoopAppsPath = "$(scoop prefix)\apps"
+# FIX: Check if the apps path exists before trying to search within it.
+if (Test-Path -Path $scoopAppsPath -PathType Container) {
+    try {
+        $regFiles = Get-ChildItem -Path $scoopAppsPath -Filter "install-context.reg" -Recurse
+        if ($regFiles) {
+            foreach ($file in $regFiles) {
+                Write-Log "Applying registry file: $($file.FullName)" "Info"
+                try {
+                    regedit.exe /s "$($file.FullName)"
+                    Write-Log "Successfully applied registry file for '$($file.Directory.Parent.Name)'." "Success"
+                } catch {
+                    Write-Log "Failed to apply registry file: $($file.FullName). Error: $($_.Exception.Message)" "Error"
+                }
             }
+        } else {
+            Write-Log "No 'install-context.reg' files found in any Scoop app directories." "Warning"
         }
-    } else {
-        Write-Log "No 'install-context.reg' files found in any Scoop app directories." "Warning"
+    } catch {
+        Write-Log "An error occurred while searching for registry files: $($_.Exception.Message)" "Error"
     }
-} catch {
-    Write-Log "An error occurred while searching for registry files: $($_.Exception.Message)" "Error"
+} else {
+    Write-Log "Scoop apps directory not found at '$scoopAppsPath'. Skipping search for registry files." "Error"
 }
 Write-Log "--- Post-Install setup complete ---`n" "Info"
 Write-Host '------------------------------------------------------------'
