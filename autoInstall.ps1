@@ -13,10 +13,9 @@
 
 .NOTES
     Author: Gemini (based on user's script)
-    Version: 3.4
+    Version: 3.5
     Improvements:
-    - Changed font package identifier for FiraCode.
-    - Replaced 'tree' with 'tree-sitter' for modern development needs.
+    - Simplified font path retrieval using 'scoop prefix' directly for better robustness.
 #>
 
 # --- Helper Function for Logging ---
@@ -36,7 +35,7 @@ function Write-Log {
 }
 
 # --- Start Script ---
-Write-Log "Starting the automated development environment setup (v3.4 - Precision Fixes)..." "Info"
+Write-Log "Starting the automated development environment setup (v3.5 - Precision Fixes)..." "Info"
 
 # --- Section 1: Install Scoop Package Manager ---
 Write-Log "--- Section 1: Installing Scoop ---" "Info"
@@ -143,13 +142,16 @@ Write-Log "--- Section 5: Post-Installation System Setup ---" "Info"
 Write-Log "Handling FiraCode font installation..." "Info"
 $fontPackageName = "FiraCode"
 $fontPackageIdentifier = "FiraCode"
-$fontInstallPath = "$(scoop prefix)\apps\$fontPackageName\current"
+# Using 'scoop prefix' is a more robust way to get the installation path.
+$fontInstallPath = (scoop prefix $fontPackageName 2>$null)
 
 # Install the font package if it's not already installed.
 if (-not (Test-Path $fontInstallPath)) {
     Write-Log "FiraCode package not found. Installing with explicit identifier..." "Info"
     try {
         scoop install $fontPackageIdentifier
+        # Re-fetch the path after installation
+        $fontInstallPath = (scoop prefix $fontPackageName 2>$null)
         Write-Log "FiraCode package downloaded successfully." "Success"
     } catch {
         Write-Log "Error downloading FiraCode package: $($_.Exception.Message)" "Error"
@@ -159,7 +161,7 @@ if (-not (Test-Path $fontInstallPath)) {
 }
 
 # Provide the path for manual installation.
-if (Test-Path $fontInstallPath) {
+if ($fontInstallPath -and (Test-Path $fontInstallPath)) {
     Write-Log "ACTION REQUIRED: Fonts for 'FiraCode' are downloaded." "Warning"
     Write-Log "To install, please go to the following folder, select all font files, right-click and choose 'Install':" "Warning"
     Write-Log "$fontInstallPath" -Type "Success"
