@@ -11,13 +11,15 @@
     5. Separately installs FiraCode font and provides a path for manual setup.
     6. Precisely finds and applies 'install-context.reg' files from each installed Scoop app.
     7. Configures Git, clones a settings repository, and deploys configuration files.
-    8. Creates a summary file on the Desktop with the locations of all deployed configuration files.
+    8. Automatically configures Firefox with custom userChrome.css and user.js.
+    9. Creates a summary file on the Desktop with the locations of all deployed configuration files.
+    10. Automatically cleans up the installation files (repository and the script itself) upon completion.
 
 .NOTES
     Author: Gemini (based on user's script)
-    Version: 4.0
+    Version: 4.2
     Improvements:
-    - Implemented a robust, permanent Unikey installation with a startup shortcut, replacing the previous temporary method.
+    - Added automatic Firefox configuration for userChrome.css and user.js.
 #>
 
 # --- Helper Function for Logging ---
@@ -48,7 +50,7 @@ $ascii = @'
 '@
 
 Write-Host $ascii -ForegroundColor Magenta
-Write-Log "Starting the automated development environment setup (v4.0 - Robust Unikey Install)..." "Info"
+Write-Log "Starting the automated development environment setup (v4.2 - With Firefox Config)..." "Info"
 
 # --- Section 1: Install Scoop Package Manager ---
 Write-Log "--- Section 1: Installing Scoop ---" "Info"
@@ -342,8 +344,8 @@ function Deploy-Config {
     }
 }
 
-# Deploy all configurations
-Write-Log "Deploying configuration files..." "Info"
+# --- Part 8.1: Deploy Standard Configurations ---
+Write-Log "Deploying standard application configurations..." "Info"
 Deploy-Config -Source "$repoPath\git-bash\.bashrc" -Destination $userProfile
 Deploy-Config -Source "$repoPath\starship\starship.toml" -Destination $configDir
 Deploy-Config -Source "$repoPath\nvim" -Destination $localAppData -Recurse
@@ -356,20 +358,42 @@ Deploy-Config -Source "$repoPath\komorebic\komorebi.json" -Destination $userProf
 Deploy-Config -Source "$repoPath\komorebic\whkdrc" -Destination $configDir
 Deploy-Config -Source "$repoPath\komorebic\startup-komo.bat" -Destination $userStartupDir
 
+# --- Part 8.2: Configure Firefox ---
+Write-Log "Attempting to configure Firefox..." "Info"
+try {
+    # Find the default Firefox profile directory
+    $firefoxProfileDir = Get-ChildItem -Path "$appData\Mozilla\Firefox\Profiles" -Filter "*.default*" -Directory | Select-Object -First 1
+    
+    if ($firefoxProfileDir) {
+        $profileFullPath = $firefoxProfileDir.FullName
+        Write-Log "Found Firefox profile: $profileFullPath" "Info"
+
+        $sourceChromeDir = Join-Path -Path $repoPath -ChildPath "Firefox\FireFoxOneLinerCSS-main\chrome"
+        $sourceUserJs = Join-Path -Path $repoPath -ChildPath "Firefox\FireFoxOneLinerCSS-main\user.js"
+
+        if ((Test-Path $sourceChromeDir) -and (Test-Path $sourceUserJs)) {
+            # Deploy chrome directory
+            Deploy-Config -Source $sourceChromeDir -Destination $profileFullPath -Recurse
+            # Deploy user.js file
+            Deploy-Config -Source $sourceUserJs -Destination $profileFullPath
+            Write-Log "Firefox custom configuration deployed successfully." "Success"
+        } else {
+            Write-Log "Firefox source configuration files not found in repository. Skipping." "Warning"
+        }
+    } else {
+        Write-Log "Could not find a default Firefox profile. Skipping Firefox configuration." "Warning"
+    }
+} catch {
+    Write-Log "An error occurred during Firefox configuration: $($_.Exception.Message)" "Error"
+}
+
+
 Write-Log "--- Configuration deployment complete ---`n" "Info"
 Write-Host '------------------------------------------------------------'
 
 
-# --- Section 9: Firefox Configuration Note ---
-Write-Log "--- Section 9: Firefox Note ---" "Info"
-Write-Log "Automatic Firefox configuration (like extensions) is complex." "Warning"
-Write-Log "Please configure Firefox manually or by copying an existing profile if needed." "Info"
-Write-Log "--- Firefox note complete ---`n" "Info"
-Write-Host '------------------------------------------------------------'
-
-
-# --- Section 10: Generate Configuration Summary ---
-Write-Log "--- Section 10: Generating Configuration Summary ---" "Info"
+# --- Section 9: Generate Configuration Summary ---
+Write-Log "--- Section 9: Generating Configuration Summary ---" "Info"
 $summary = @()
 $summary += "==============================================="
 $summary += "  Deployed Configuration File Locations"
@@ -399,6 +423,13 @@ $summary += ""
 $summary += "Unikey (Vietnamese Input):"
 $summary += "- Installation directory: $unikeyInstallDir"
 $summary += ""
+$summary += "Firefox:"
+if ($firefoxProfileDir) {
+    $summary += "- Custom config deployed to profile: $($firefoxProfileDir.FullName)"
+} else {
+    $summary += "- No profile found, configuration skipped."
+}
+$summary += ""
 $summary += "==============================================="
 
 # Log summary to console
@@ -421,4 +452,26 @@ Write-Host '------------------------------------------------------------'
 Write-Log "All setup and configuration steps have been completed successfully!" "Success"
 Write-Log "A summary file of configuration locations has been created on your Desktop." "Info"
 Write-Log "Please RESTART your terminal (or computer) for all changes to take full effect." "Info"
+Write-Host '------------------------------------------------------------'
+
+
+# --- Section 10: Final Cleanup ---
+Write-Log "--- Section 10: Final Cleanup ---" "Info"
+try {
+    Write-Log "Removing cloned settings repository..." "Info"
+    Remove-Item -Path $repoPath -Recurse -Force
+    Write-Log "Repository '$repoName' has been removed." "Success"
+} catch {
+    Write-Log "Could not remove the repository folder at '$repoPath'. You may need to remove it manually. Error: $($_.Exception.Message)" "Error"
+}
+
+try {
+    Write-Log "This script will self-destruct in 3 seconds..." "Warning"
+    # $PSCommandPath is an automatic variable that contains the full path of the running script.
+    # We start a new, hidden PowerShell process that waits and then deletes the original script file.
+    $selfDeleteCommand = "Start-Sleep -Seconds 3; Remove-Item -Path `"$PSCommandPath`" -Force"
+    Start-Process powershell -ArgumentList "-NoProfile -Command `"$selfDeleteCommand`"" -WindowStyle Hidden
+} catch {
+    Write-Log "Could not schedule self-destruction. Please delete the script file manually. Error: $($_.Exception.Message)" "Error"
+}
 
