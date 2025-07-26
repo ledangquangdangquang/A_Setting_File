@@ -7,16 +7,17 @@
     1. Installs Scoop and its core dependency, Git.
     2. Configures Scoop buckets and displays the current list for verification.
     3. Batch-installs essential development tools.
-    4. Separately installs FiraCode font and provides a path for manual setup.
-    5. Precisely finds and applies 'install-context.reg' files from each installed Scoop app.
-    6. Configures Git, clones a settings repository, and deploys configuration files.
-    7. Creates a summary file on the Desktop with the locations of all deployed configuration files.
+    4. Implements a robust, permanent installation for Unikey with auto-startup.
+    5. Separately installs FiraCode font and provides a path for manual setup.
+    6. Precisely finds and applies 'install-context.reg' files from each installed Scoop app.
+    7. Configures Git, clones a settings repository, and deploys configuration files.
+    8. Creates a summary file on the Desktop with the locations of all deployed configuration files.
 
 .NOTES
     Author: Gemini (based on user's script)
-    Version: 3.9
+    Version: 4.0
     Improvements:
-    - Changed the configuration summary language to English to avoid potential encoding issues.
+    - Implemented a robust, permanent Unikey installation with a startup shortcut, replacing the previous temporary method.
 #>
 
 # --- Helper Function for Logging ---
@@ -36,7 +37,7 @@ function Write-Log {
 }
 
 # --- Start Script ---
-Write-Log "Starting the automated development environment setup (v3.9 - English Summary)..." "Info"
+Write-Log "Starting the automated development environment setup (v4.0 - Robust Unikey Install)..." "Info"
 
 # --- Section 1: Install Scoop Package Manager ---
 Write-Log "--- Section 1: Installing Scoop ---" "Info"
@@ -110,7 +111,7 @@ Write-Host '------------------------------------------------------------'
 # --- Section 4: Batch Install Applications ---
 Write-Log "--- Section 4: Application Installation ---" "Info"
 
-# Centralized list of all packages to install (fonts are handled separately).
+# Centralized list of all packages to install (fonts and Unikey are handled separately).
 $packages = @(
     "python", "tree-sitter", "starship", "neovim", "alacritty",
     "yazi", "komorebi", "whkd", "firefox", "vcredist2022"
@@ -124,8 +125,6 @@ if ($packagesToInstall.Count -gt 0) {
     Write-Log "The following packages will be installed: $packageListForDisplay" "Info"
     try {
         scoop install $packagesToInstall
-        Write-Log "Unikey install" "Info"
-        $zip="$env:TEMP\unikey.zip"; $dest="$env:TEMP\Unikey"; Invoke-WebRequest -Uri "https://www.unikey.org/assets/release/unikey46RC2-230919-win64.zip" -OutFile $zip; Expand-Archive -Path $zip -DestinationPath $dest -Force; Start-Process "$dest\UniKeyNT.exe"
         Write-Log "All packages downloaded successfully!" "Success"
     } catch {
         Write-Log "Error during batch installation: $($_.Exception.Message)" "Error"
@@ -138,10 +137,77 @@ Write-Log "--- Package download complete ---`n" "Info"
 Write-Host '------------------------------------------------------------'
 
 
-# --- Section 5: Post-Install System Setup ---
-Write-Log "--- Section 5: Post-Installation System Setup ---" "Info"
+# --- Section 5: Install and Configure Unikey ---
+Write-Log "--- Section 5: Installing and Configuring Unikey ---" "Info"
 
-# --- Part 5.1: Install and Guide Font Setup ---
+# Define a permanent installation path in the user's profile
+$unikeyInstallDir = Join-Path -Path $env:USERPROFILE -ChildPath "Tools\Unikey"
+$unikeyExePath = Join-Path -Path $unikeyInstallDir -ChildPath "UniKeyNT.exe"
+
+# Check if Unikey is already installed in our target location
+if (-not (Test-Path -Path $unikeyExePath)) {
+    Write-Log "Unikey not found. Proceeding with permanent installation..." "Info"
+    try {
+        # Ensure the base directory exists
+        if (-not (Test-Path -Path $unikeyInstallDir)) {
+            New-Item -Path $unikeyInstallDir -ItemType Directory -Force | Out-Null
+        }
+
+        $zipPath = "$env:TEMP\unikey.zip"
+        $unikeyUrl = "https://www.unikey.org/assets/release/unikey46RC2-230919-win64.zip"
+
+        Write-Log "Downloading Unikey from $unikeyUrl..." "Info"
+        Invoke-WebRequest -Uri $unikeyUrl -OutFile $zipPath
+
+        Write-Log "Extracting Unikey to $unikeyInstallDir..." "Info"
+        Expand-Archive -Path $zipPath -DestinationPath $unikeyInstallDir -Force
+
+        Write-Log "Unikey installed successfully to $unikeyInstallDir." "Success"
+
+        # Clean up the downloaded zip file
+        Remove-Item -Path $zipPath -Force
+    } catch {
+        Write-Log "An error occurred during Unikey installation: $($_.Exception.Message)" "Error"
+    }
+} else {
+    Write-Log "Unikey is already installed at $unikeyInstallDir." "Warning"
+}
+
+# Configure Unikey to run on startup
+try {
+    $userStartupDir = "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup"
+    $shortcutPath = Join-Path -Path $userStartupDir -ChildPath "Unikey.lnk"
+
+    if (-not (Test-Path -Path $shortcutPath)) {
+        Write-Log "Creating Unikey startup shortcut..." "Info"
+        $wshell = New-Object -ComObject WScript.Shell
+        $shortcut = $wshell.CreateShortcut($shortcutPath)
+        $shortcut.TargetPath = $unikeyExePath
+        $shortcut.Save()
+        Write-Log "Unikey startup shortcut created successfully." "Success"
+    } else {
+        Write-Log "Unikey startup shortcut already exists." "Warning"
+    }
+} catch {
+    Write-Log "An error occurred while creating the Unikey startup shortcut: $($_.Exception.Message)" "Error"
+}
+
+# Finally, start the process if it's not already running
+$unikeyProcess = Get-Process -Name "UniKeyNT" -ErrorAction SilentlyContinue
+if (-not $unikeyProcess) {
+    Write-Log "Starting Unikey process..." "Info"
+    Start-Process -FilePath $unikeyExePath
+} else {
+    Write-Log "Unikey process is already running." "Warning"
+}
+Write-Log "--- Unikey setup complete ---`n" "Info"
+Write-Host '------------------------------------------------------------'
+
+
+# --- Section 6: Post-Install System Setup ---
+Write-Log "--- Section 6: Post-Installation System Setup ---" "Info"
+
+# --- Part 6.1: Install and Guide Font Setup ---
 Write-Log "Handling FiraCode font installation..." "Info"
 $fontPackageName = "FiraCode-NF"
 $fontPackageIdentifier = "nerd-fonts/FiraCode-NF"
@@ -175,7 +241,7 @@ try {
 }
 
 
-# --- Part 5.2: Apply Context Menu Registry Files ---
+# --- Part 6.2: Apply Context Menu Registry Files ---
 Write-Log "Searching for and applying context menu registry files..." "Info"
 # Iterate through each installed package to find its specific context file.
 $allInstalledPackages = $packages + $fontPackageName
@@ -205,8 +271,8 @@ Write-Log "--- Post-Install setup complete ---`n" "Info"
 Write-Host '------------------------------------------------------------'
 
 
-# --- Section 6: Configure Git ---
-Write-Log "--- Section 6: Git Configuration ---" "Info"
+# --- Section 7: Configure Git ---
+Write-Log "--- Section 7: Git Configuration ---" "Info"
 $gitUserName = Read-Host "Enter your Git username (e.g., Your Name)"
 $gitUserEmail = Read-Host "Enter your Git email (e.g., your.email@example.com)"
 
@@ -219,8 +285,8 @@ Write-Log "--- Git configuration complete ---`n" "Info"
 Write-Host '------------------------------------------------------------'
 
 
-# --- Section 7: Clone Settings Repository & Deploy Configurations ---
-Write-Log "--- Section 7: Deploying Configurations from Repository ---" "Info"
+# --- Section 8: Clone Settings Repository & Deploy Configurations ---
+Write-Log "--- Section 8: Deploying Configurations from Repository ---" "Info"
 $repoUrl = "https://github.com/ledangquangdangquang/A_Setting_File.git"
 $repoName = "A_Setting_File"
 $repoPath = "./$repoName"
@@ -283,16 +349,16 @@ Write-Log "--- Configuration deployment complete ---`n" "Info"
 Write-Host '------------------------------------------------------------'
 
 
-# --- Section 8: Firefox Configuration Note ---
-Write-Log "--- Section 8: Firefox Note ---" "Info"
+# --- Section 9: Firefox Configuration Note ---
+Write-Log "--- Section 9: Firefox Note ---" "Info"
 Write-Log "Automatic Firefox configuration (like extensions) is complex." "Warning"
 Write-Log "Please configure Firefox manually or by copying an existing profile if needed." "Info"
 Write-Log "--- Firefox note complete ---`n" "Info"
 Write-Host '------------------------------------------------------------'
 
 
-# --- Section 9: Generate Configuration Summary ---
-Write-Log "--- Section 9: Generating Configuration Summary ---" "Info"
+# --- Section 10: Generate Configuration Summary ---
+Write-Log "--- Section 10: Generating Configuration Summary ---" "Info"
 $summary = @()
 $summary += "==============================================="
 $summary += "  Deployed Configuration File Locations"
@@ -318,6 +384,9 @@ $summary += "- komorebi.bar.json: $userProfile"
 $summary += "- komorebi.json: $userProfile"
 $summary += "- whkdrc (hotkeys): $configDir"
 $summary += "- startup-komo.bat (startup): $userStartupDir"
+$summary += ""
+$summary += "Unikey (Vietnamese Input):"
+$summary += "- Installation directory: $unikeyInstallDir"
 $summary += ""
 $summary += "==============================================="
 
