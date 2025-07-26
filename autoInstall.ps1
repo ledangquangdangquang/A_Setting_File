@@ -110,7 +110,7 @@ Write-Log "--- Section 4: Application and Font Installation ---" "Info"
 $packages = @(
     "python", "tree", "starship", "neovim", "alacritty",
     "yazi", "komorebi", "whkd", "firefox", "vcredist2022",
-    "nerd-fonts/firacode-nerd-font"
+    "nerd-fonts/FiraCode"
 )
 
 # Filter out packages that are already installed.
