@@ -6,20 +6,20 @@
     This script performs the following actions:
     1. Installs Scoop and its core dependency, Git.
     2. Configures Scoop buckets and displays the current list for verification.
-    3. Batch-installs essential development tools.
+    3. Batch-installs essential development tools, including yasb.
     4. Implements a robust, permanent installation for Unikey with auto-startup.
     5. Separately installs FiraCode font and provides a path for manual setup.
     6. Precisely finds and applies 'install-context.reg' files from each installed Scoop app.
-    7. Configures Git, clones a settings repository, and deploys configuration files.
+    7. Configures Git, clones a settings repository, and deploys configuration files for all apps.
     8. Automatically configures Firefox with custom userChrome.css and user.js.
     9. Creates a summary file on the Desktop with the locations of all deployed configuration files.
     10. Automatically cleans up the installation files (repository and the script itself) upon completion.
 
 .NOTES
     Author: Gemini (based on user's script)
-    Version: 4.2
+    Version: 4.3
     Improvements:
-    - Added automatic Firefox configuration for userChrome.css and user.js.
+    - Added installation and configuration for 'yasb' status bar.
 #>
 
 # --- Helper Function for Logging ---
@@ -50,7 +50,7 @@ $author= @'
 '@
 
 Write-Host $author -ForegroundColor Magenta
-Write-Log "Starting the automated development environment setup (v4.2 - With Firefox Config)..." "Info"
+Write-Log "Starting the automated development environment setup (v4.3 - Added Yasb)..." "Info"
 
 # --- Section 1: Install Scoop Package Manager ---
 Write-Log "--- Section 1: Installing Scoop ---" "Info"
@@ -127,7 +127,7 @@ Write-Log "--- Section 4: Application Installation ---" "Info"
 # Centralized list of all packages to install (fonts and Unikey are handled separately).
 $packages = @(
     "python", "tree-sitter", "starship", "neovim", "alacritty",
-    "yazi", "komorebi", "whkd", "firefox", "vcredist2022"
+    "yazi", "komorebi", "whkd", "firefox", "vcredist2022", "yasb"
 )
 
 # Filter out packages that are already installed.
@@ -351,14 +351,18 @@ Deploy-Config -Source "$repoPath\starship\starship.toml" -Destination $configDir
 Deploy-Config -Source "$repoPath\nvim" -Destination $localAppData -Recurse
 Deploy-Config -Source "$repoPath\alacritty" -Destination $appData -Recurse
 Deploy-Config -Source "$repoPath\yazi" -Destination $appData -Recurse
+Deploy-Config -Source "$repoPath\yasb" -Destination $configDir -Recurse
 
-# Komorebi specific configuration
-Deploy-Config -Source "$repoPath\komorebic\komorebi.bar.json" -Destination $userProfile
+
+# --- Part 8.2: Deploy Komorebi Configurations ---
+Write-Log "Deploying Komorebi configurations..." "Info"
+# Deploy the main komorebi.json and whkdrc files from the user's repository.
 Deploy-Config -Source "$repoPath\komorebic\komorebi.json" -Destination $userProfile
 Deploy-Config -Source "$repoPath\komorebic\whkdrc" -Destination $configDir
-Deploy-Config -Source "$repoPath\komorebic\startup-komo.bat" -Destination $userStartupDir
+Deploy-Config -Source "$repoPath\komorebic\komorebi.bar.json" -Destination $userProfile
 
-# --- Part 8.2: Configure Firefox ---
+
+# --- Part 8.3: Configure Firefox ---
 Write-Log "Attempting to configure Firefox..." "Info"
 try {
     # Find the default Firefox profile directory
@@ -414,11 +418,13 @@ $summary += ""
 $summary += "Yazi (File Manager):"
 $summary += "- yazi config directory: $appData\yazi"
 $summary += ""
+$summary += "Yasb (Status Bar):"
+$summary += "- yasb config directory: $configDir\yasb"
+$summary += ""
 $summary += "Komorebi (Window Manager):"
-$summary += "- komorebi.bar.json: $userProfile"
 $summary += "- komorebi.json: $userProfile"
+$summary += "- komorebi.bar.json: $userProfile"
 $summary += "- whkdrc (hotkeys): $configDir"
-$summary += "- startup-komo.bat (startup): $userStartupDir"
 $summary += ""
 $summary += "Unikey (Vietnamese Input):"
 $summary += "- Installation directory: $unikeyInstallDir"
@@ -474,4 +480,3 @@ try {
 } catch {
     Write-Log "Could not schedule self-destruction. Please delete the script file manually. Error: $($_.Exception.Message)" "Error"
 }
-
