@@ -52,7 +52,7 @@
   -moz-box-ordinal-group: 0 !important;
   order: -2 !important;
   margin: 2px !important;
-  display: flex !important;
+  display: none !important;
 }
 #TabsToolbar-customization-target {
     height: 33px;
@@ -65,10 +65,12 @@
   
  
 }
+.titlebar-spacer {
+ display: none !important;
+}
 
+/* Page back and foward buttons #back-button,*/
 
-/* Page back and foward buttons */
-#back-button,
 #forward-button
 {
   display: none !important;
