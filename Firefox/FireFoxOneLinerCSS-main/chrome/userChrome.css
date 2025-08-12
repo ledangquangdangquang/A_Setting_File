@@ -93,6 +93,17 @@
   display: none !important;
 }
 
+#identity-box {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.tracking-protection-icon {
+  display: inline !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
 
 
 /* ----------------------------------------------------------------- END element visibility section ------------------------------------------------------------- */
@@ -100,11 +111,11 @@
 
 /* URL bar icons */
 #reload-button,
-#identity-permission-box,
+/* #identity-permission-box, */
 #star-button-box,
-#identity-icon-box,
+/* #identity-icon-box, */
 #picture-in-picture-button,
-#tracking-protection-icon-container,
+/* #tracking-protection-icon-container, */
 #reader-mode-button,
 #translations-button
 {
