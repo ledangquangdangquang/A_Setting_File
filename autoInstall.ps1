@@ -364,6 +364,7 @@ Deploy-Config -Source "$repoPath\komorebic\komorebi.bar.json" -Destination $user
 
 # --- Part 8.3: Configure Firefox ---
 Write-Log "Attempting to configure Firefox..." "Info"
+firefox
 try {
     # Find the default Firefox profile directory
     $firefoxProfileDir = Get-ChildItem -Path "$appData\Mozilla\Firefox\Profiles" -Filter "*.default*" -Directory | Select-Object -First 1
