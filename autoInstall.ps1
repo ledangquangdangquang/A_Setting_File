@@ -17,7 +17,7 @@
 
 .NOTES
     Author: Gemini (based on user's script)
-    Version: 4.3
+    Version: 4.4
     Improvements:
     - Added installation and configuration for 'yasb' status bar.
 #>
@@ -365,6 +365,7 @@ Deploy-Config -Source "$repoPath\komorebic\komorebi.bar.json" -Destination $user
 # --- Part 8.3: Configure Firefox ---
 Write-Log "Attempting to configure Firefox..." "Info"
 firefox
+sleep(5)
 try {
     # Find the default Firefox profile directory
     $firefoxProfileDir = Get-ChildItem -Path "$appData\Mozilla\Firefox\Profiles" -Filter "*.default*" -Directory | Select-Object -First 1
@@ -458,26 +459,6 @@ Write-Host '------------------------------------------------------------'
 # --- Final Message ---
 Write-Log "All setup and configuration steps have been completed successfully!" "Success"
 Write-Log "A summary file of configuration locations has been created on your Desktop." "Info"
+Write-Log "A_Setting_File in ~/Downloads" "Info"
 Write-Log "Please RESTART your terminal (or computer) for all changes to take full effect." "Info"
 Write-Host '------------------------------------------------------------'
-
-
-# --- Section 10: Final Cleanup ---
-Write-Log "--- Section 10: Final Cleanup ---" "Info"
-try {
-    Write-Log "Removing cloned settings repository..." "Info"
-    Remove-Item -Path $repoPath -Recurse -Force
-    Write-Log "Repository '$repoName' has been removed." "Success"
-} catch {
-    Write-Log "Could not remove the repository folder at '$repoPath'. You may need to remove it manually. Error: $($_.Exception.Message)" "Error"
-}
-
-try {
-    Write-Log "This script will self-destruct in 3 seconds..." "Warning"
-    # $PSCommandPath is an automatic variable that contains the full path of the running script.
-    # We start a new, hidden PowerShell process that waits and then deletes the original script file.
-    $selfDeleteCommand = "Start-Sleep -Seconds 3; Remove-Item -Path `"$PSCommandPath`" -Force"
-    Start-Process powershell -ArgumentList "-NoProfile -Command `"$selfDeleteCommand`"" -WindowStyle Hidden
-} catch {
-    Write-Log "Could not schedule self-destruction. Please delete the script file manually. Error: $($_.Exception.Message)" "Error"
-}
