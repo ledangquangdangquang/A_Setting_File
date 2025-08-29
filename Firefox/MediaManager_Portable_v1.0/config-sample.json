@@ -1,0 +1,10 @@
+{
+  "output_dir": "",
+  "format": "mp4",
+  "quality": "1080p",
+  "subtitles": "none",
+  "thumbnails": "embed",
+  "metadata": "embed",
+  "playlist": "default",
+  "advanced_options": ""
+}

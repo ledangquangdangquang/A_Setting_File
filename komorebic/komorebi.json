@@ -4,11 +4,11 @@
   "cross_monitor_move_behaviour": "Insert",
   "default_workspace_padding": 4,
   "default_container_padding": 4,
-  "border": false,
-  "border_width": 1,
+  "border": true,
+  "border_width": 5,
   "border_offset": 1,
   "border_colours": {
-    "single": "#42a5f5",
+    "single": "#a872ed",
     "stack": "#00a542",
     "monocle": "#ff3399",
     "unfocused": "#808080"

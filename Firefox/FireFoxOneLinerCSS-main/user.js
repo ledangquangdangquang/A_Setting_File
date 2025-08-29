@@ -233,7 +233,7 @@ user_pref("layout.word_select.eat_space_to_next_word", false);
 ****************************************************************************/
 // visit https://github.com/yokoffing/Betterfox/wiki/Common-Overrides
 // visit https://github.com/yokoffing/Betterfox/wiki/Optional-Hardening
-// Enter your personal overrides below this line:
+// Enter your personal override below this line:
 // PREF: always ask where to download
 // true = Direct download
 // false = The user is asked what to do
@@ -249,7 +249,7 @@ user_pref("reader.color_scheme", "auto");
 user_pref("apz.overscroll.enabled", true); // DEFAULT NON-LINUX
 user_pref("general.smoothScroll", true); // DEFAULT
 user_pref("mousewheel.default.delta_multiplier_y", 275); // 250-400; adjust this number to your liking
-
+user_pref("widget.non-native-theme.scrollbar.style", 1);
 /****************************************************************************
  * END: BETTERFOX                                                           *
 ****************************************************************************/
