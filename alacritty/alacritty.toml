@@ -2,7 +2,7 @@
 
 # 1. Cửa sổ và nền
 [window]
-opacity = 0.4
+opacity = 0.7
 decorations = "none"  # Ẩn viền cửa sổ
 padding = { x = 5, y = 0}
 dynamic_padding = false

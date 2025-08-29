@@ -7,19 +7,20 @@
     1. Installs Scoop and its core dependency, Git.
     2. Configures Scoop buckets and displays the current list for verification.
     3. Batch-installs essential development tools, including yasb.
-    4. Implements a robust, permanent installation for Unikey with auto-startup.
-    5. Separately installs FiraCode font and provides a path for manual setup.
-    6. Precisely finds and applies 'install-context.reg' files from each installed Scoop app.
-    7. Configures Git, clones a settings repository, and deploys configuration files for all apps.
-    8. Automatically configures Firefox with custom userChrome.css and user.js.
-    9. Creates a summary file on the Desktop with the locations of all deployed configuration files.
-    10. Automatically cleans up the installation files (repository and the script itself) upon completion.
+    4. Downloads and silently installs Internet Download Manager (IDM).
+    5. Implements a robust, permanent installation for Unikey with auto-startup.
+    6. Separately installs FiraCode font and provides a path for manual setup.
+    7. Precisely finds and applies 'install-context.reg' files from each installed Scoop app.
+    8. Configures Git, clones a settings repository, and deploys configuration files for all apps.
+    9. Automatically configures Firefox with custom userChrome.css and user.js.
+    10. Creates a summary file on the Desktop with the locations of all deployed configuration files.
+    11. Automatically cleans up the installation files (repository and the script itself) upon completion.
 
 .NOTES
     Author: Gemini (based on user's script)
-    Version: 4.4
+    Version: 4.6
     Improvements:
-    - Added installation and configuration for 'yasb' status bar.
+    - Added a dedicated section to download and silently install Internet Download Manager (IDM).
 #>
 
 # --- Helper Function for Logging ---
@@ -50,7 +51,7 @@ $author= @'
 '@
 
 Write-Host $author -ForegroundColor Magenta
-Write-Log "Starting the automated development environment setup (v4.3 - Added Yasb)..." "Info"
+Write-Log "Starting the automated development environment setup (v4.6 - Added IDM)..." "Info"
 
 # --- Section 1: Install Scoop Package Manager ---
 Write-Log "--- Section 1: Installing Scoop ---" "Info"
@@ -150,40 +151,60 @@ Write-Log "--- Package download complete ---`n" "Info"
 Write-Host '------------------------------------------------------------'
 
 
-# --- Section 5: Install and Configure Unikey ---
-Write-Log "--- Section 5: Installing and Configuring Unikey ---" "Info"
+# --- Section 5: Install Internet Download Manager (IDM) ---
+Write-Log "--- Section 5: Installing Internet Download Manager ---" "Info"
+try {
+    $idmUrl = "https://mirror2.internetdownloadmanager.com/idman642build42.exe"
+    $idmInstallerPath = Join-Path -Path $env:TEMP -ChildPath "idm_installer.exe"
+
+    Write-Log "Downloading IDM from $idmUrl..." "Info"
+    Invoke-WebRequest -Uri $idmUrl -OutFile $idmInstallerPath
+
+    Write-Log "Starting silent installation of IDM... Please wait." "Info"
+    # The /S argument triggers a silent installation for IDM installers.
+    Start-Process -FilePath $idmInstallerPath -ArgumentList "/S" -Wait
+
+    Write-Log "IDM installation complete." "Success"
+
+    # Clean up the downloaded installer
+    Remove-Item -Path $idmInstallerPath -Force
+} catch {
+    Write-Log "An error occurred during IDM installation: $($_.Exception.Message)" "Error"
+}
+Write-Log "--- IDM setup complete ---`n" "Info"
+Write-Host '------------------------------------------------------------'
+
+
+# --- Section 6: Install and Configure Unikey ---
+Write-Log "--- Section 6: Installing and Configuring Unikey ---" "Info"
 
 # Define a permanent installation path in the user's profile
 $unikeyInstallDir = Join-Path -Path $env:USERPROFILE -ChildPath "Tools\Unikey"
 $unikeyExePath = Join-Path -Path $unikeyInstallDir -ChildPath "UniKeyNT.exe"
 
-# Check if Unikey is already installed in our target location
-if (-not (Test-Path -Path $unikeyExePath)) {
-    Write-Log "Unikey not found. Proceeding with permanent installation..." "Info"
-    try {
-        # Ensure the base directory exists
-        if (-not (Test-Path -Path $unikeyInstallDir)) {
-            New-Item -Path $unikeyInstallDir -ItemType Directory -Force | Out-Null
-        }
-
-        $zipPath = "$env:TEMP\unikey.zip"
-        $unikeyUrl = "https://www.unikey.org/assets/release/unikey46RC2-230919-win64.zip"
-
-        Write-Log "Downloading Unikey from $unikeyUrl..." "Info"
-        Invoke-WebRequest -Uri $unikeyUrl -OutFile $zipPath
-
-        Write-Log "Extracting Unikey to $unikeyInstallDir..." "Info"
-        Expand-Archive -Path $zipPath -DestinationPath $unikeyInstallDir -Force
-
-        Write-Log "Unikey installed successfully to $unikeyInstallDir." "Success"
-
-        # Clean up the downloaded zip file
-        Remove-Item -Path $zipPath -Force
-    } catch {
-        Write-Log "An error occurred during Unikey installation: $($_.Exception.Message)" "Error"
+# Always download and install the latest version of Unikey
+Write-Log "Proceeding with Unikey installation/update..." "Info"
+try {
+    # Ensure the base directory exists
+    if (-not (Test-Path -Path $unikeyInstallDir)) {
+        New-Item -Path $unikeyInstallDir -ItemType Directory -Force | Out-Null
     }
-} else {
-    Write-Log "Unikey is already installed at $unikeyInstallDir." "Warning"
+
+    $zipPath = "$env:TEMP\unikey.zip"
+    $unikeyUrl = "https://www.unikey.org/assets/release/unikey46RC2-230919-win64.zip"
+
+    Write-Log "Downloading Unikey from $unikeyUrl..." "Info"
+    Invoke-WebRequest -Uri $unikeyUrl -OutFile $zipPath
+
+    Write-Log "Extracting Unikey to $unikeyInstallDir..." "Info"
+    Expand-Archive -Path $zipPath -DestinationPath $unikeyInstallDir -Force
+
+    Write-Log "Unikey installed successfully to $unikeyInstallDir." "Success"
+
+    # Clean up the downloaded zip file
+    Remove-Item -Path $zipPath -Force
+} catch {
+    Write-Log "An error occurred during Unikey installation: $($_.Exception.Message)" "Error"
 }
 
 # Configure Unikey to run on startup
@@ -217,10 +238,10 @@ Write-Log "--- Unikey setup complete ---`n" "Info"
 Write-Host '------------------------------------------------------------'
 
 
-# --- Section 6: Post-Install System Setup ---
-Write-Log "--- Section 6: Post-Installation System Setup ---" "Info"
+# --- Section 7: Post-Install System Setup ---
+Write-Log "--- Section 7: Post-Installation System Setup ---" "Info"
 
-# --- Part 6.1: Install and Guide Font Setup ---
+# --- Part 7.1: Install and Guide Font Setup ---
 Write-Log "Handling FiraCode font installation..." "Info"
 $fontPackageName = "FiraCode-NF"
 $fontPackageIdentifier = "nerd-fonts/FiraCode-NF"
@@ -254,7 +275,7 @@ try {
 }
 
 
-# --- Part 6.2: Apply Context Menu Registry Files ---
+# --- Part 7.2: Apply Context Menu Registry Files ---
 Write-Log "Searching for and applying context menu registry files..." "Info"
 # Iterate through each installed package to find its specific context file.
 $allInstalledPackages = $packages + $fontPackageName
@@ -284,8 +305,8 @@ Write-Log "--- Post-Install setup complete ---`n" "Info"
 Write-Host '------------------------------------------------------------'
 
 
-# --- Section 7: Configure Git ---
-Write-Log "--- Section 7: Git Configuration ---" "Info"
+# --- Section 8: Configure Git ---
+Write-Log "--- Section 8: Git Configuration ---" "Info"
 $gitUserName = Read-Host "Enter your Git username (e.g., Your Name)"
 $gitUserEmail = Read-Host "Enter your Git email (e.g., your.email@example.com)"
 
@@ -298,8 +319,8 @@ Write-Log "--- Git configuration complete ---`n" "Info"
 Write-Host '------------------------------------------------------------'
 
 
-# --- Section 8: Clone Settings Repository & Deploy Configurations ---
-Write-Log "--- Section 8: Deploying Configurations from Repository ---" "Info"
+# --- Section 9: Clone Settings Repository & Deploy Configurations ---
+Write-Log "--- Section 9: Deploying Configurations from Repository ---" "Info"
 $repoUrl = "https://github.com/ledangquangdangquang/A_Setting_File.git"
 $repoName = "A_Setting_File"
 $repoPath = "./$repoName"
@@ -344,7 +365,7 @@ function Deploy-Config {
     }
 }
 
-# --- Part 8.1: Deploy Standard Configurations ---
+# --- Part 9.1: Deploy Standard Configurations ---
 Write-Log "Deploying standard application configurations..." "Info"
 Deploy-Config -Source "$repoPath\git-bash\.bashrc" -Destination $userProfile
 Deploy-Config -Source "$repoPath\starship\starship.toml" -Destination $configDir
@@ -354,7 +375,7 @@ Deploy-Config -Source "$repoPath\yazi" -Destination $appData -Recurse
 Deploy-Config -Source "$repoPath\yasb" -Destination $configDir -Recurse
 
 
-# --- Part 8.2: Deploy Komorebi Configurations ---
+# --- Part 9.2: Deploy Komorebi Configurations ---
 Write-Log "Deploying Komorebi configurations..." "Info"
 # Deploy the main komorebi.json and whkdrc files from the user's repository.
 Deploy-Config -Source "$repoPath\komorebic\komorebi.json" -Destination $userProfile
@@ -362,13 +383,14 @@ Deploy-Config -Source "$repoPath\komorebic\whkdrc" -Destination $configDir
 Deploy-Config -Source "$repoPath\komorebic\komorebi.bar.json" -Destination $userProfile
 
 
-# --- Part 8.3: Configure Firefox ---
+# --- Part 9.3: Configure Firefox ---
 Write-Log "Attempting to configure Firefox..." "Info"
-firefox
-sleep(5)
+# firefox
+# sleep(5)
 try {
     # Find the default Firefox profile directory
-    $firefoxProfileDir = Get-ChildItem -Path "$appData\Mozilla\Firefox\Profiles" -Filter "*.default*" -Directory | Select-Object -First 1
+    # $firefoxProfileDir = Get-ChildItem -Path "$appData\Mozilla\Firefox\Profiles" -Filter "*.default*" -Directory | Select-Object -First 1
+    $firefoxProfileDir = $HOME\scoop\persist\firefox\profile 
     
     if ($firefoxProfileDir) {
         $profileFullPath = $firefoxProfileDir.FullName
@@ -383,6 +405,7 @@ try {
             # Deploy user.js file
             Deploy-Config -Source $sourceUserJs -Destination $profileFullPath
             Write-Log "Firefox custom configuration deployed successfully." "Success"
+            Write-Log "Firefox have set in profile Scoop." "Success"
         } else {
             Write-Log "Firefox source configuration files not found in repository. Skipping." "Warning"
         }
@@ -398,8 +421,8 @@ Write-Log "--- Configuration deployment complete ---`n" "Info"
 Write-Host '------------------------------------------------------------'
 
 
-# --- Section 9: Generate Configuration Summary ---
-Write-Log "--- Section 9: Generating Configuration Summary ---" "Info"
+# --- Section 10: Generate Configuration Summary ---
+Write-Log "--- Section 10: Generating Configuration Summary ---" "Info"
 $summary = @()
 $summary += "==============================================="
 $summary += "  Deployed Configuration File Locations"
