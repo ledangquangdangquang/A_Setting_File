@@ -128,7 +128,7 @@ Write-Log "--- Section 4: Application Installation ---" "Info"
 # Centralized list of all packages to install (fonts and Unikey are handled separately).
 $packages = @(
     "python", "tree-sitter", "starship", "neovim", "alacritty",
-    "yazi", "komorebi", "whkd", "firefox", "vcredist2022", "yasb"
+    "yazi", "komorebi", "whkd", "firefox", "vcredist2022", "yasb", "oh-my-posh"
 )
 
 # Filter out packages that are already installed.
@@ -368,6 +368,7 @@ function Deploy-Config {
 # --- Part 9.1: Deploy Standard Configurations ---
 Write-Log "Deploying standard application configurations..." "Info"
 Deploy-Config -Source "$repoPath\git-bash\.bashrc" -Destination $userProfile
+Deploy-Config -Source "$repoPath\oh-my-posh\Oh-my-posh-config.json" -Destination $userProfile
 Deploy-Config -Source "$repoPath\starship\starship.toml" -Destination $configDir
 Deploy-Config -Source "$repoPath\nvim" -Destination $localAppData -Recurse
 Deploy-Config -Source "$repoPath\alacritty" -Destination $appData -Recurse
@@ -390,7 +391,7 @@ Write-Log "Attempting to configure Firefox..." "Info"
 try {
     # Find the default Firefox profile directory
     # $firefoxProfileDir = Get-ChildItem -Path "$appData\Mozilla\Firefox\Profiles" -Filter "*.default*" -Directory | Select-Object -First 1
-    $firefoxProfileDir = $HOME\scoop\persist\firefox\profile 
+    $firefoxProfileDir = "$HOME\scoop\persist\firefox\profile"
     
     if ($firefoxProfileDir) {
         $profileFullPath = $firefoxProfileDir.FullName

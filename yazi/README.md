@@ -3,7 +3,10 @@
 > This file manager i am using now. 
 ---
 ## Locate: folder `yazi` in `%APPDATA%`
-
+## Add variable 
+```
+setx YAZI_FILE_ONE "$env:USERPROFILE\scoop\apps\git\current\usr\bin\file.exe"
+```
 ---
 > [!NOTE]
 > `%USERPROFILE%` is `C:\Users\{UserName}` 
