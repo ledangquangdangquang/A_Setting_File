@@ -40,7 +40,7 @@ function Write-Log {
 }
 
 # --- Start Script ---
-clear
+Clear-Host
 $author= @'
   _          _                                                     _
  | | ___  __| | __ _ _ __   __ _  __ _ _   _  __ _ _ __   __ _  __| | __ _ _ __   __ _  __ _ _   _  __ _ _ __   __ _
@@ -266,7 +266,7 @@ try {
         Write-Log "ACTION REQUIRED: Fonts for 'FiraCode' are downloaded." "Warning"
         Write-Log "To install, please go to the following folder, select all font files, right-click and choose 'Install'" "Warning"
         Write-Log "$fontInstallPath" -Type "Warning"
-        start $fontInstallPath
+        Start-Process $fontInstallPath
     } else {
         Write-Log "Could not find FiraCode package directory even after installation attempt. Skipping manual setup guide." "Error"
     }
@@ -382,7 +382,7 @@ Write-Log "Deploying Komorebi configurations..." "Info"
 Deploy-Config -Source "$repoPath\komorebic\komorebi.json" -Destination $userProfile
 Deploy-Config -Source "$repoPath\komorebic\whkdrc" -Destination $configDir
 Deploy-Config -Source "$repoPath\komorebic\komorebi.bar.json" -Destination $userProfile
-
+komorebic.exe enable-autostart --whkd
 
 # --- Part 9.3: Configure Firefox ---
 Write-Log "Attempting to configure Firefox..." "Info"
