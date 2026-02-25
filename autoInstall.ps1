@@ -128,7 +128,7 @@ Write-Log "--- Section 4: Application Installation ---" "Info"
 # Centralized list of all packages to install (fonts and Unikey are handled separately).
 $packages = @(
     "python", "tree-sitter", "starship", "neovim", "alacritty",
-    "yazi", "komorebi", "whkd", "firefox", "vcredist2022", "yasb", "oh-my-posh"
+    "yazi", "komorebi", "whkd", "helium", "vcredist2022", "yasb", "oh-my-posh"
 )
 
 # Filter out packages that are already installed.
@@ -384,39 +384,39 @@ Deploy-Config -Source "$repoPath\komorebic\whkdrc" -Destination $configDir
 Deploy-Config -Source "$repoPath\komorebic\komorebi.bar.json" -Destination $userProfile
 komorebic.exe enable-autostart --whkd
 
-# --- Part 9.3: Configure Firefox ---
-Write-Log "Attempting to configure Firefox..." "Info"
-# firefox
-# sleep(5)
-try {
-    # Find the default Firefox profile directory
-    # $firefoxProfileDir = Get-ChildItem -Path "$appData\Mozilla\Firefox\Profiles" -Filter "*.default*" -Directory | Select-Object -First 1
-    $firefoxProfileDir = "$HOME\scoop\persist\firefox\profile"
-    
-    if ($firefoxProfileDir) {
-        $profileFullPath = $firefoxProfileDir.FullName
-        Write-Log "Found Firefox profile: $profileFullPath" "Info"
-
-        $sourceChromeDir = Join-Path -Path $repoPath -ChildPath "Firefox\FireFoxOneLinerCSS-main\chrome"
-        $sourceUserJs = Join-Path -Path $repoPath -ChildPath "Firefox\FireFoxOneLinerCSS-main\user.js"
-
-        if ((Test-Path $sourceChromeDir) -and (Test-Path $sourceUserJs)) {
-            # Deploy chrome directory
-            Deploy-Config -Source $sourceChromeDir -Destination $profileFullPath -Recurse
-            # Deploy user.js file
-            Deploy-Config -Source $sourceUserJs -Destination $profileFullPath
-            Write-Log "Firefox custom configuration deployed successfully." "Success"
-            Write-Log "Firefox have set in profile Scoop." "Success"
-        } else {
-            Write-Log "Firefox source configuration files not found in repository. Skipping." "Warning"
-        }
-    } else {
-        Write-Log "Could not find a default Firefox profile. Skipping Firefox configuration." "Warning"
-    }
-} catch {
-    Write-Log "An error occurred during Firefox configuration: $($_.Exception.Message)" "Error"
-}
-
+# # --- Part 9.3: Configure Firefox ---
+# Write-Log "Attempting to configure Firefox..." "Info"
+# # firefox
+# # sleep(5)
+# try {
+#     # Find the default Firefox profile directory
+#     # $firefoxProfileDir = Get-ChildItem -Path "$appData\Mozilla\Firefox\Profiles" -Filter "*.default*" -Directory | Select-Object -First 1
+#     $firefoxProfileDir = "$HOME\scoop\persist\firefox\profile"
+#
+#     if ($firefoxProfileDir) {
+#         $profileFullPath = $firefoxProfileDir.FullName
+#         Write-Log "Found Firefox profile: $profileFullPath" "Info"
+#
+#         $sourceChromeDir = Join-Path -Path $repoPath -ChildPath "Firefox\FireFoxOneLinerCSS-main\chrome"
+#         $sourceUserJs = Join-Path -Path $repoPath -ChildPath "Firefox\FireFoxOneLinerCSS-main\user.js"
+#
+#         if ((Test-Path $sourceChromeDir) -and (Test-Path $sourceUserJs)) {
+#             # Deploy chrome directory
+#             Deploy-Config -Source $sourceChromeDir -Destination $profileFullPath -Recurse
+#             # Deploy user.js file
+#             Deploy-Config -Source $sourceUserJs -Destination $profileFullPath
+#             Write-Log "Firefox custom configuration deployed successfully." "Success"
+#             Write-Log "Firefox have set in profile Scoop." "Success"
+#         } else {
+#             Write-Log "Firefox source configuration files not found in repository. Skipping." "Warning"
+#         }
+#     } else {
+#         Write-Log "Could not find a default Firefox profile. Skipping Firefox configuration." "Warning"
+#     }
+# } catch {
+#     Write-Log "An error occurred during Firefox configuration: $($_.Exception.Message)" "Error"
+# }
+#
 
 Write-Log "--- Configuration deployment complete ---`n" "Info"
 Write-Host '------------------------------------------------------------'

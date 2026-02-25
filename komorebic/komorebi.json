@@ -2,16 +2,22 @@
   "$schema": "https://raw.githubusercontent.com/LGUG2Z/komorebi/v0.1.28/schema.json",
   "window_hiding_behaviour": "Cloak",
   "cross_monitor_move_behaviour": "Insert",
-  "default_workspace_padding": 4,
-  "default_container_padding": 4,
+  "default_workspace_padding": 0,
+  "default_container_padding": 0,
   "border": true,
-  "border_width": 5,
+  "border_width": 1,
   "border_offset": 1,
   "border_colours": {
     "single": "#a872ed",
     "stack": "#00a542",
     "monocle": "#ff3399",
     "unfocused": "#808080"
+  },
+   "animation": {
+    "enabled": false,
+    "duration": 250,
+    "fps": 120,
+    "style": "EaseOutSine"
   },
   "manage_rules": [
     [
@@ -69,7 +75,23 @@
       "kind": "Exe",
       "id": "DarzasDominion.exe",
       "matching_strategy": "Equals"
+    },
+    {
+      "kind": "Exe",
+      "id": "LLPlayer.exe",
+      "matching_strategy": "Equals"
+    },
+    {
+      "kind": "Exe",
+      "id": "YtDownloader.exe",
+      "matching_strategy": "Equals"
+    },
+    {
+      "kind": "Class",
+      "id": "CabinetWClass",
+      "matching_strategy": "Equals"
     }
+
   ],
   "stackbar": {
     "height": 40,

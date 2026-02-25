@@ -9,7 +9,7 @@ alt + i                 : komorebic toggle-shortcuts
 
 # App shortcuts - these require shell to be pwsh / powershell
 # The apps will be focused if open, or launched if not open
-alt + f                 : start firefox 
+alt + f                 : start helium 
 alt + return			      : wt
 # alt + b               : if ($wshell.AppActivate('Chrome') -eq $False) { start chrome }
 

@@ -2,6 +2,7 @@
 
 > This is browser i am using now. 
 ---
+- Helium: `helium://flags/#helium-cat-ui`
 - tampermonkey: The extension (addons Firefox) javascript in web realtime:
     - Dashboard -> Utilities -> Import from file 
     - Upload .zip file in folder tampermonkey
