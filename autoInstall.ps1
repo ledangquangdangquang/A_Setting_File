@@ -372,17 +372,17 @@ Deploy-Config -Source "$repoPath\oh-my-posh\Oh-my-posh-config.json" -Destination
 Deploy-Config -Source "$repoPath\starship\starship.toml" -Destination $configDir
 Deploy-Config -Source "$repoPath\nvim" -Destination $localAppData -Recurse
 Deploy-Config -Source "$repoPath\alacritty" -Destination $appData -Recurse
-Deploy-Config -Source "$repoPath\yazi" -Destination $appData -Recurse
-Deploy-Config -Source "$repoPath\yasb" -Destination $configDir -Recurse
+# Deploy-Config -Source "$repoPath\yazi" -Destination $appData -Recurse
+# Deploy-Config -Source "$repoPath\yasb" -Destination $configDir -Recurse
 
 
 # --- Part 9.2: Deploy Komorebi Configurations ---
-Write-Log "Deploying Komorebi configurations..." "Info"
+# Write-Log "Deploying Komorebi configurations..." "Info"
 # Deploy the main komorebi.json and whkdrc files from the user's repository.
-Deploy-Config -Source "$repoPath\komorebic\komorebi.json" -Destination $userProfile
-Deploy-Config -Source "$repoPath\komorebic\whkdrc" -Destination $configDir
-Deploy-Config -Source "$repoPath\komorebic\komorebi.bar.json" -Destination $userProfile
-komorebic.exe enable-autostart --whkd
+# Deploy-Config -Source "$repoPath\komorebic\komorebi.json" -Destination $userProfile
+# Deploy-Config -Source "$repoPath\komorebic\whkdrc" -Destination $configDir
+# Deploy-Config -Source "$repoPath\komorebic\komorebi.bar.json" -Destination $userProfile
+# komorebic.exe enable-autostart --whkd
 
 # # --- Part 9.3: Configure Firefox ---
 # Write-Log "Attempting to configure Firefox..." "Info"
@@ -438,30 +438,30 @@ $summary += ""
 $summary += "Neovim (Editor):"
 $summary += "- nvim config directory: $localAppData\nvim"
 $summary += ""
-$summary += "Alacritty (Terminal):"
-$summary += "- alacritty config directory: $appData\alacritty"
+# $summary += "Alacritty (Terminal):"
+# $summary += "- alacritty config directory: $appData\alacritty"
 $summary += ""
 $summary += "Yazi (File Manager):"
 $summary += "- yazi config directory: $appData\yazi"
 $summary += ""
-$summary += "Yasb (Status Bar):"
-$summary += "- yasb config directory: $configDir\yasb"
-$summary += ""
-$summary += "Komorebi (Window Manager):"
-$summary += "- komorebi.json: $userProfile"
-$summary += "- komorebi.bar.json: $userProfile"
-$summary += "- whkdrc (hotkeys): $configDir"
-$summary += ""
+# $summary += "Yasb (Status Bar):"
+# $summary += "- yasb config directory: $configDir\yasb"
+# $summary += ""
+# $summary += "Komorebi (Window Manager):"
+# $summary += "- komorebi.json: $userProfile"
+# $summary += "- komorebi.bar.json: $userProfile"
+# $summary += "- whkdrc (hotkeys): $configDir"
+# $summary += ""
 $summary += "Unikey (Vietnamese Input):"
 $summary += "- Installation directory: $unikeyInstallDir"
 $summary += ""
-$summary += "Firefox:"
-if ($firefoxProfileDir) {
-    $summary += "- Custom config deployed to profile: $($firefoxProfileDir.FullName)"
-} else {
-    $summary += "- No profile found, configuration skipped."
-}
-$summary += ""
+# $summary += "Firefox:"
+# if ($firefoxProfileDir) {
+#     $summary += "- Custom config deployed to profile: $($firefoxProfileDir.FullName)"
+# } else {
+#     $summary += "- No profile found, configuration skipped."
+# }
+# $summary += ""
 $summary += "==============================================="
 
 # Log summary to console
