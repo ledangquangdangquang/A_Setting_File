@@ -127,7 +127,7 @@ Write-Log "--- Section 4: Application Installation ---" "Info"
 
 # Centralized list of all packages to install (fonts and Unikey are handled separately).
 $packages = @(
-    "python", "tree-sitter", "starship", "neovim", "alacritty",
+    "python", "tree-sitter", "starship", "neovim", "zen-browser", 
     "yazi", "vcredist2022" 
 )
 
