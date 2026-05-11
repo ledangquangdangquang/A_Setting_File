@@ -313,6 +313,7 @@ $gitUserEmail = Read-Host "Enter your Git email (e.g., your.email@example.com)"
 git config --global user.name "$gitUserName"
 git config --global user.email "$gitUserEmail"
 git config --global alias.acp '!f() { git add . && git commit -m "$1" && git push; }; f'
+git config --global init.defaultBranch main
 
 Write-Log "Git user.name, user.email, and 'acp' alias configured." "Success"
 Write-Log "--- Git configuration complete ---`n" "Info"
