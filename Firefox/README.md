@@ -16,9 +16,38 @@
 Nó bị ẩn mặc định, nên phải bật lên trước.
 
 ---
+## DNS Protection
+```
+dns.adguard.com
+```
+
+---
+## Script search duckduckgo
+```
+(function(){
+    const links = document.querySelectorAll('article a[data-testid="result-title-a"], a.result__url'); 
+    const domains = new Set(); 
+    links.forEach(link => { 
+        try { 
+            const url = new URL(link.href); 
+            let domain = url.hostname; 
+            if (domain.startsWith('www.')) domain = domain.substring(4); 
+            if (domain && domain !== 'duckduckgo.com') domains.add(domain); 
+        } catch (e) { } 
+    }); 
+    
+    // Gom tất cả lại thành chuỗi văn bản sạch
+    const resultText = Array.from(domains).sort().map(domain => `127.0.0.1 ${domain}`).join('\n');
+    
+    // Tự động copy thẳng vào khay nhớ tạm (Clipboard) của máy tính
+    copy(resultText); 
+    console.log(`%c[+] Đã tìm thấy ${domains.size} web và TỰ ĐỘNG COPY VÀO CLIPBOARD! Bạn chỉ cần nhấn Ctrl+V để dán.`, 'color: #00ff00; font-weight: bold;');
+})();
+
+```
+---
 
 **Cách bật và mở Browser Toolbox:**
-
 ### 1. Bật trong `about:config`
 
 1. Gõ vào thanh địa chỉ:
