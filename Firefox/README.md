@@ -82,7 +82,7 @@ dns.adguard.com
 ---
 
 ### Code authen
-![code authen](./code authen.jpg) 
+![code authen](./code-authen.jpg) 
 > [!NOTE]
 > `%USERPROFILE%` is `C:\Users\{UserName}` 
 > 
