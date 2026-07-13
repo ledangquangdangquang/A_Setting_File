@@ -57,11 +57,25 @@ Write-Log "Starting the automated development environment setup (v4.6 - Added ID
 Write-Log "--- Section 1: Installing Scoop ---" "Info"
 if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
     Write-Log "Scoop not found. Proceeding with installation..." "Info"
-    try {
+   try {
         Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force -ErrorAction Stop
-        Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')
+
+        $IsAdmin = ([Security.Principal.WindowsPrincipal] `
+            [Security.Principal.WindowsIdentity]::GetCurrent()
+        ).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+
+        if ($IsAdmin) {
+            Write-Log "Running as Administrator. Installing Scoop for all users..." "Info"
+            iex "& {$(irm get.scoop.sh)} -RunAsAdmin"
+        }
+        else {
+            Write-Log "Running as standard user. Installing Scoop for current user..." "Info"
+            Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')
+        }
+
         Write-Log "Scoop installed successfully!" "Success"
-    } catch {
+    }
+    catch {
         Write-Log "Critical error installing Scoop: $($_.Exception.Message)" "Error"
         Write-Log "Please check your network connection or permissions and rerun the script." "Error"
         exit 1
