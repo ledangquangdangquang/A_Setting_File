@@ -336,24 +336,26 @@ Write-Host '------------------------------------------------------------'
 
 # --- Section 9: Clone Settings Repository & Deploy Configurations ---
 Write-Log "--- Section 9: Deploying Configurations from Repository ---" "Info"
-$repoUrl = "https://github.com/ledangquangdangquang/A_Setting_File.git"
+
+$repoUrl  = "https://github.com/ledangquangdangquang/A_Setting_File.git"
 $repoName = "A_Setting_File"
-$repoPath = "./$repoName"
-
-if (-not (Test-Path $repoPath)) {
-    Write-Log "Cloning settings repository from $repoUrl..." "Info"
-    git clone $repoUrl
-    Write-Log "Repository cloned successfully." "Success"
-} else {
-    Write-Log "Settings repository already exists. Skipping clone." "Warning"
-}
-
+$repoPath = Join-Path $userProfile $repoName
 # Define common destination paths
 $userProfile = $env:USERPROFILE
 $appData = $env:APPDATA
 $localAppData = $env:LOCALAPPDATA
 $configDir = "$userProfile\.config"
 $userStartupDir = "$appData\Microsoft\Windows\Start Menu\Programs\Startup"
+
+if (-not (Test-Path $repoPath)) {
+    Write-Log "Cloning settings repository to $repoPath..." "Info"
+    git clone $repoUrl $repoPath
+    Write-Log "Repository cloned successfully." "Success"
+}
+else {
+    Write-Log "Settings repository already exists. Skipping clone." "Warning"
+}
+
 
 # Create .config directory if it doesn't exist
 if (-not (Test-Path $configDir)) {
